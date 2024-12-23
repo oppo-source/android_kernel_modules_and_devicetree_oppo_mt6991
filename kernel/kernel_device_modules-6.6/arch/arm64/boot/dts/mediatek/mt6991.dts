@@ -6298,6 +6298,9 @@ sw_info,frame_id,custom,pipeline_stage,RPID,UID";
 			mediatek,clkgate = <&usbcfg_ao_clk 0x13>;
 			mediatek,usb-mbist = <&usbcfg_ao_mbist_clk>;
 			mediatek,usb-ao-cfg = <&usbwkcfg_ao_clk>;
+			usb-psy-name = "mtk-master-charger";
+			typec-name = "rt-pd-manager";
+			typec-port-name = "port0";
 			cdp-block;
 			/* #ifdef OPLUS_FEATURE_CHG_BASIC */
 			usb3-lpm-disable;
@@ -15020,7 +15023,7 @@ connsys_emi_config_hyp: connsys-emi-config-hyp {
 		scp-dram-region = "enable";   /* enable scp dram region manage */
 		scp-protect = "enable";   /* enable scp protections */
 		secure-dump = "enable";   /* enable dump via secure world*/
-		secure-dump-size = <0x928000>;
+		secure-dump-size = <0xa28000>;
 		scp-pm-notify = "enable";
 		scp-thermal-wq = "disable";
 		scp-low-pwr-dbg = "enable";
@@ -15063,7 +15066,7 @@ connsys_emi_config_hyp: connsys-emi-config-hyp {
 			<0x0c4000>, /* l1c */
 			<0x003c00>, /* regdump */
 			<0x000400>, /* trace buffer */
-			<0x500000>; /* dram */
+			<0x600000>; /* dram */
 #if 0
 		scp-resource-dump = "disable";   /* enable dump scp related resource */
 		/* regulator */

@@ -8,7 +8,7 @@
 				       CHG_PROTOCOL_PPS
 				       CHG_PROTOCOL_PD>;
 	oplus,high_power_pps {
-		oplus,region_id = /bits/ 8 <0x44>;
+		oplus,region_id = /bits/ 8 <0x44 0x3B>;
 		oplus,protocol_list = <CHG_PROTOCOL_VOOC 80
 				       CHG_PROTOCOL_PPS 55
 				       CHG_PROTOCOL_PD 18

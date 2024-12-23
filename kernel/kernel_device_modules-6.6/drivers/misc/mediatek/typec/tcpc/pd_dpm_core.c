@@ -646,6 +646,8 @@ void pd_dpm_snk_standby_power(struct pd_port *pd_port)
 	if (pd_port->request_apdo)
 		return;
 #endif	/* CONFIG_USB_PD_REV30_PPS_SINK */
+	if (standby_curr > pd_port->request_i_new)
+		standby_curr = pd_port->request_i_new;
 
 	if (pd_port->request_v_new > pd_port->request_v) {
 		/* Case2 Increasing the Voltage */
@@ -659,9 +661,10 @@ void pd_dpm_snk_standby_power(struct pd_port *pd_port)
 		/* Case8 Decreasing the Voltage and the Current*/
 		ma = standby_curr;
 		type = TCP_VBUS_CTRL_STANDBY_DOWN;
-	} else if (pd_port->request_i_new < pd_port->request_i) {
+	} else if (pd_port->request_i == -1 ||
+		   pd_port->request_i_new < pd_port->request_i) {
 		/* Case6 Decreasing the Current, t1 i = new */
-		ma = pd_port->request_i_new;
+		ma = standby_curr;
 		type = TCP_VBUS_CTRL_STANDBY;
 	}
 

@@ -40,6 +40,7 @@
 #include <linux/of_platform.h>
 #include <linux/rtc.h>
 #include "../../../misc/mediatek/typec/tcpc/inc/tcpci.h"
+#include "../../../misc/mediatek/typec/tcpc/inc/tcpm.h"
 #include <asm/setup.h>
 
 #include "oplus_hal_mtk6991V.h"
@@ -63,6 +64,7 @@
 #include <linux/usb/typec.h>
 #include <oplus_chg_pps.h>
 #include <oplus_chg_wls.h>
+#include <oplus_chg_cpa.h>
 
 static int oplus_chg_set_pps_config(struct oplus_chg_ic_dev *ic_dev, int vbus_mv, int ibus_ma);
 static int oplus_chg_set_fixed_pd_config(struct oplus_chg_ic_dev *ic_dev, int vol_mv, int curr_ma);
@@ -127,6 +129,22 @@ extern bool mt6379_int_chrdet_attach(void);
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 17, 0))
 #define PDE_DATA(inode) pde_data(inode)
 #endif
+
+__maybe_unused static bool
+is_wired_suspend_votable_available(struct mtk_charger *chip)
+{
+	if (!chip->wired_suspend_votable)
+		chip->wired_suspend_votable = find_votable("WIRED_CHARGE_SUSPEND");
+	return !!chip->wired_suspend_votable;
+}
+
+__maybe_unused static bool
+is_wired_icl_votable_available(struct mtk_charger *chip)
+{
+	if (!chip->wired_icl_votable)
+		chip->wired_icl_votable = find_votable("WIRED_ICL");
+	return !!chip->wired_icl_votable;
+}
 
 static bool is_gauge_topic_available(struct mtk_charger *chip)
 {
@@ -1318,6 +1336,8 @@ static void mtk_charger_parse_dt(struct mtk_charger *info,
 	chr_debug("%s: support_ntc_01c_precision: %d, support_subboard_ntc = %d\n",
 		__func__, info->support_ntc_01c_precision, info->support_subboard_ntc);
 
+	info->tcpc_notify_icl_support =
+			of_property_read_bool(np, "oplus,tcpc-notify-icl-support");
 	info->usbtemp_dischg_reg_configurable =
 		of_property_read_bool(np, "oplus,support_usbtemp_dischg_reg_configurable");
 
@@ -4203,17 +4223,158 @@ trigger_irq:
 	return 0;
 }
 
+static bool oplus_get_pps_online(struct mtk_charger *info)
+{
+	bool pps_online = false;
+	union mms_msg_data data = {0};
+
+	if (!info)
+		return false;
+
+	if (!info->pps_topic)
+		info->pps_topic = oplus_mms_get_by_name("pps");
+
+	if (info->pps_topic) {
+		oplus_mms_get_item_data(info->pps_topic,
+					PPS_ITEM_ONLINE, &data, false);
+		pps_online = !!data.intval;
+	}
+	return pps_online;
+}
+
+static int oplus_get_ongoing_protocol(struct mtk_charger *info)
+{
+	union mms_msg_data data = {0};
+
+	if (!info)
+		return false;
+
+	if (!info->cpa_topic)
+		info->cpa_topic = oplus_mms_get_by_name("cpa");
+
+	if (info->cpa_topic)
+		oplus_mms_get_item_data(info->cpa_topic,
+					CPA_ITEM_ALLOW, &data, true);
+
+	return data.intval;
+}
+
+#define DEFAULT_CURR_BY_CC_VOLT_SNK_DFT 100
+#define CURR_BY_CC_VOLT_SNK_1P5V 1500
+#define CURR_BEFORE_PPS_REQUEST_VBUS_IBUS 500
+#define CURR_TYPEC_OUT_SET_ICL 500
+#define TCPC_ICL_VOTE_UNSUSPEND_TIMER 1000
+static int oplus_chg_tcpc_set_icl_by_vote(struct mtk_charger *pinfo, int icl, const char *client_str)
+{
+	int rc = 0;
+
+	if (is_wired_icl_votable_available(pinfo)) {
+		rc = vote(pinfo->wired_icl_votable, client_str, true, icl, false);
+		if (rc < 0)
+			chg_err("set icl error: icl = %d, rc = %d\n", icl, rc);
+		else
+			chg_info(" icl = %d\n", icl);
+
+		/* common charge set 1500ma, oplus dcp set 2000, need rerun_election */
+		if (icl >= CURR_BY_CC_VOLT_SNK_1P5V &&
+			icl < get_effective_result(pinfo->wired_icl_votable)) {
+			chg_info(" icl >= 1500ma and < effective icl, rerun_election\n");
+			rerun_election(pinfo->wired_icl_votable, true);
+		}
+	}
+
+	return rc;
+}
+
+static int oplus_chg_tcpc_set_suspend_by_vote(struct mtk_charger *pinfo, bool suspend, const char *client_str)
+{
+	int rc = 0;
+
+	if (is_wired_suspend_votable_available(pinfo)) {
+		rc = vote(pinfo->wired_suspend_votable, client_str, !!suspend, suspend, false);
+		if (rc < 0)
+			chg_err("%s charger error, rc=%d\n", suspend ? "suspend" : "unsuspend", rc);
+		else
+			chg_info("%s charger\n", suspend ? "suspend" : "unsuspend");
+	}
+
+	return rc;
+}
+
+static void oplus_tcpc_icl_del_timer(struct mtk_charger *chip)
+{
+	del_timer(&chip->icl_suspend_timer);
+}
+
+static void oplus_tcpc_icl_vote_suspend_start_timer(struct mtk_charger *chip, unsigned int ms)
+{
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
+	mod_timer(&chip->icl_suspend_timer, jiffies + msecs_to_jiffies(ms));
+#elif (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0) && LINUX_VERSION_CODE < KERNEL_VERSION(6, 6, 0))
+	try_to_del_timer_sync(&chip->icl_suspend_timer);
+	chip->icl_suspend_timer.expires  = jiffies + msecs_to_jiffies(ms);
+	add_timer(&chip->icl_suspend_timer);
+#elif (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 6, 0))
+	timer_delete_sync(&chip->icl_suspend_timer);
+	chip->icl_suspend_timer.expires  = jiffies + msecs_to_jiffies(ms);
+	add_timer(&chip->icl_suspend_timer);
+#endif
+}
+
+static void oplus_charger_dev_set_input_current(struct mtk_charger *pinfo, struct tcp_notify *noti)
+{
+	static int pre_notify_icl = 0;
+	const char *client_str;
+	bool suspend_charger = false;
+	int chg_type = OPLUS_CHG_USB_TYPE_UNKNOWN;
+
+	chg_info("pre_notify_icl :%d, ma: %d\n", pre_notify_icl, noti->vbus_state.ma);
+
+	if (noti->vbus_state.type != TCP_VBUS_CTRL_REMOVE) {
+		if (noti->vbus_state.ma <= DEFAULT_CURR_BY_CC_VOLT_SNK_DFT) {
+			oplus_chg_tcpc_set_icl_by_vote(pinfo, noti->vbus_state.ma * 1000, TCPC_NOTIFY_ICL_VOTER);
+			chg_type = oplus_wired_get_chg_type();
+			if (OPLUS_CHG_USB_TYPE_SDP == chg_type || OPLUS_CHG_USB_TYPE_PD_SDP == chg_type ||
+			    pinfo->pd_type == MTK_PD_CONNECT_PE_READY_SNK ||
+			    pinfo->pd_type == MTK_PD_CONNECT_PE_READY_SNK_PD30 ||
+			    pinfo->pd_type == MTK_PD_CONNECT_PE_READY_SNK_APDO) {
+				oplus_chg_tcpc_set_suspend_by_vote(pinfo, true, TCPC_NOTIFY_ICL_VOTER);
+				oplus_tcpc_icl_vote_suspend_start_timer(pinfo, TCPC_ICL_VOTE_UNSUSPEND_TIMER);
+				chg_info("sdp pd_sdp fix pdo or pd30 or pps set icl <= 100, TCPC VOTE suspend and add timer\n");
+			}
+		} else {
+			if (pre_notify_icl != noti->vbus_state.ma) {
+				oplus_chg_tcpc_set_icl_by_vote(pinfo, noti->vbus_state.ma * 1000, TCPC_NOTIFY_ICL_VOTER);
+				oplus_chg_tcpc_set_suspend_by_vote(pinfo, false, TCPC_NOTIFY_ICL_VOTER);
+				chg_info("fix pdo or pd30 or pps set icl > 100, TCPC VOTE unsuspend\n");
+			}
+		}
+	}
+	if (is_wired_suspend_votable_available(pinfo)) {
+		client_str = get_effective_client(pinfo->wired_suspend_votable);
+		suspend_charger = get_effective_result(pinfo->wired_suspend_votable);
+		chg_info("get effective client for suspend:%s, result: %d\n", client_str, suspend_charger);
+	}
+	pre_notify_icl = noti->vbus_state.ma;
+
+	return;
+}
+
 static int pd_tcp_notifier_call(struct notifier_block *pnb,
 				unsigned long event, void *data)
 {
 	struct tcp_notify *noti = data;
 	struct mtk_charger *pinfo = NULL;
 	int ret = 0;
+	int protocol;
 
 	pinfo = container_of(pnb, struct mtk_charger, pd_nb);
 
 	chg_info("PD charger event:%d %d\n", (int)event,
 		(int)noti->pd_state.connected);
+
+	protocol = oplus_get_ongoing_protocol(pinfo);
+	chg_info("ongoing protocol is :%d\n", protocol);
 
 	switch (event) {
 	case TCP_NOTIFY_SOURCE_VBUS:
@@ -4224,11 +4385,23 @@ static int pd_tcp_notifier_call(struct notifier_block *pnb,
 		}
 		break;
 
+	case TCP_NOTIFY_SINK_VBUS:
+		if ((protocol == CHG_PROTOCOL_PD || protocol == CHG_PROTOCOL_PPS ||
+		    protocol == CHG_PROTOCOL_BC12 || protocol == CHG_PROTOCOL_INVALID) &&
+		    pinfo->tcpc_notify_icl_support) {
+			chg_info("pd type:%d. sink vbus %dmV %dmA type(0x%02X)\n",
+				pinfo->pd_type, noti->vbus_state.mv, noti->vbus_state.ma, noti->vbus_state.type);
+			oplus_charger_dev_set_input_current(pinfo, noti);
+		}
+		break;
+
 	case TCP_NOTIFY_PD_STATE:
 		switch (noti->pd_state.connected) {
 		case  PD_CONNECT_NONE:
 			pinfo->pd_type = MTK_PD_CONNECT_NONE;
 			chr_err("PD Notify Detach\n");
+			oplus_chg_tcpc_set_icl_by_vote(pinfo, CURR_TYPEC_OUT_SET_ICL, TCPC_NOTIFY_ICL_VOTER);
+			oplus_chg_tcpc_set_suspend_by_vote(pinfo, false, TCPC_NOTIFY_ICL_VOTER);
 			oplus_chg_ic_virq_trigger(pinfo->ic_dev, OPLUS_IC_VIRQ_CHG_TYPE_CHANGE);
 			break;
 
@@ -4308,6 +4481,9 @@ static int pd_tcp_notifier_call(struct notifier_block *pnb,
 
 		cancel_delayed_work_sync(&pinfo->detach_clean_work);
 		if (noti->chrdet_state.chrdet == 0) {
+			oplus_tcpc_icl_del_timer(pinfo);
+			oplus_chg_tcpc_set_icl_by_vote(pinfo, CURR_TYPEC_OUT_SET_ICL, TCPC_NOTIFY_ICL_VOTER);
+			oplus_chg_tcpc_set_suspend_by_vote(pinfo, false, TCPC_NOTIFY_ICL_VOTER);
 			oplus_chg_ic_virq_trigger(pinfo->ic_dev, OPLUS_IC_VIRQ_SVID);
 
 			/*fix the one plus charger break bug: delay to set the pd_svooc state*/
@@ -4613,6 +4789,7 @@ static int oplus_mt6379_input_current_limit_write(struct mtk_charger *info, int 
 	struct charger_device *chg = info->chg1_dev;
 	int batt_volt;
 	union mms_msg_data data = {0};
+	bool before_pps_flag = false;
 
 	for (i = ARRAY_SIZE(usb_icl) - 1; i >= 0; i--) {
 		if (usb_icl[i] <= value)
@@ -4648,6 +4825,15 @@ static int oplus_mt6379_input_current_limit_write(struct mtk_charger *info, int 
 	}
 
 	if (value < 500) {
+		i = 0;
+		goto aicl_end;
+	}
+
+	if (info->tcpc_notify_icl_support && value == CURR_BEFORE_PPS_REQUEST_VBUS_IBUS &&
+	    oplus_get_pps_online(info) == false &&
+	    oplus_get_ongoing_protocol(info) == CHG_PROTOCOL_PPS) {
+		chg_info("icl happen after apdo ready and before pps online true.\n");
+		before_pps_flag = true;
 		i = 0;
 		goto aicl_end;
 	}
@@ -4747,6 +4933,18 @@ aicl_pre_step:
 	rc = charger_dev_set_input_current(chg, usb_icl[i] * 1000);
 	goto aicl_rerun;
 aicl_end:
+	if (info->tcpc_notify_icl_support &&
+	    i == 0) { /* icl ma < 300ma or before_pps_flag true */
+		if (before_pps_flag) {
+			chg_info("oplus want set icl 500, tcpc set icl 0, skip oppo set.\n");
+			before_pps_flag = false;
+			goto aicl_rerun;
+		}
+
+		rc = charger_dev_set_input_current(chg, DEFAULT_CURR_BY_CC_VOLT_SNK_DFT * 1000);
+		chg_info("for common charge, icl min 300 changed to 100ma.\n");
+		goto aicl_rerun;
+	}
 	chg_info("usb input max current limit aicl chg_vol=%d i[%d]=%d sw_aicl_point:%d aicl_end\n", chg_vol, i, usb_icl[i], aicl_point);
 	rc = charger_dev_set_input_current(chg, usb_icl[i] * 1000);
 	goto aicl_rerun;
@@ -7584,7 +7782,32 @@ static int register_tz_thermal(struct mtk_charger *info)
 	return ret;
 }
 #endif
+#ifdef OPLUS_FEATURE_CHG_BASIC
+static void oplus_tcpc_icl_unsuspend_timer_work(struct work_struct *work)
+{
+	struct mtk_charger *chip =
+		container_of(work, struct mtk_charger, tcpc_icl_unsuspend_work);
 
+	if (is_wired_icl_votable_available(chip) &&
+		is_client_vote_enabled(chip->wired_suspend_votable, TCPC_NOTIFY_ICL_VOTER)) {
+		oplus_chg_tcpc_set_suspend_by_vote(chip, false, TCPC_NOTIFY_ICL_VOTER);
+		chg_info("timer expired, TCPC VOTE unsuspend\n");
+	}
+	return;
+}
+
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 19, 0))
+static void tcpc_notify_icl_vote_unsuspend(unsigned long data)
+#else
+static void tcpc_notify_icl_vote_unsuspend(struct timer_list *unused)
+#endif
+{
+	struct mtk_charger *chip = pinfo;
+
+	schedule_work(&chip->tcpc_icl_unsuspend_work);
+	return;
+}
+#endif
 static int mtk_charger_probe(struct platform_device *pdev)
 {
 	struct mtk_charger *info = NULL;
@@ -7824,6 +8047,15 @@ static int mtk_charger_probe(struct platform_device *pdev)
 	pinfo->pd_svooc = false;
 	INIT_DELAYED_WORK(&pinfo->detach_clean_work, oplus_detach_clean_work);
 	INIT_DELAYED_WORK(&pinfo->wls_chg_check_work, oplus_wls_chg_check_work);
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 19, 0))
+	init_timer(pinfo->icl_suspend_timer);
+	pinfo->icl_suspend_timer.data = (unsigned long)pinfo;
+	pinfo->icl_suspend_timer.function = tcpc_notify_icl_vote_unsuspend;
+#else
+	timer_setup(&pinfo->icl_suspend_timer, tcpc_notify_icl_vote_unsuspend, 0);
+#endif
+
+	INIT_WORK(&pinfo->tcpc_icl_unsuspend_work, oplus_tcpc_icl_unsuspend_timer_work);
 
 	if (oplus_mtk_ic_register(&pdev->dev, pinfo) != 0)
 		goto reg_ic_err;

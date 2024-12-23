@@ -441,6 +441,7 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&charger_pins_default>;
 	oplus,support_ntc_01c_precision;
+	oplus,tcpc-notify-icl-support;
 	oplus,support_subboard_ntc;
 	max_charger_voltage = <15000000>;
 
@@ -788,6 +789,7 @@
 
 		oplus,vooc-support;
 
+		oplus,common-charge-icl-support;
 		oplus_spec,vbatt_pdqc_to_5v_thr = <4500>;
 		oplus_spec,vbatt_pdqc_to_9v_thr = <4500>;
 		oplus_spec,pd-iclmax-ma = <2000>;

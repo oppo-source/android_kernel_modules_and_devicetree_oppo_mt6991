@@ -277,20 +277,23 @@
 	 ((type) << 15) |				\
 	 ((custom) & 0x7FFF))
 
-#define VDO_S(svid, ver, ver_min, cmd_type, cmd, obj)	\
-	VDO(svid, 1, VDO_SVDM_VER(ver) | VDO_SVDM_VER_MIN(ver_min) | \
+#define VDO_S(svid, ver_major, ver_minor, cmd_type, cmd, obj)	\
+	VDO(svid, 1, VDO_SVDM_VERS_MAJOR(ver_major) | VDO_SVDM_VERS_MINOR(ver_minor) |\
 		VDO_CMDT(cmd_type) | VDO_OPOS(obj) | cmd)
 
-#define VDO_REPLY(ver, ver_min, cmd_type, request_vdo)	\
-	(VDO_SVDM_VER(ver) | VDO_SVDM_VER_MIN(ver_min) | VDO_CMDT(cmd_type) \
-	| ((request_vdo) & (~0x78E0)))
+#define VDO_REPLY(ver_major, ver_minor, cmd_type, request_vdo)	\
+	(VDO_SVDM_VERS_MAJOR(ver_major) | VDO_SVDM_VERS_MINOR(ver_minor) | VDO_CMDT(cmd_type) \
+	| ((request_vdo) & (~0x60C0)))
 
-#define SVDM_REV10	0
-#define SVDM_REV20	1
+#define SVDM_MAJOR_REV10	0
+#define SVDM_MAJOR_REV20	1
+
+#define SVDM_MINOR_REV0        0
+#define SVDM_MINOR_REV1        1
 
 #define VDO_SVDM_TYPE		(1 << 15)
-#define VDO_SVDM_VER(x)		(x << 13)
-#define VDO_SVDM_VER_MIN(x)	(x << 11)
+#define VDO_SVDM_VERS_MAJOR(x)  (x << 13)
+#define VDO_SVDM_VERS_MINOR(x)  (x << 11)
 #define VDO_OPOS(x)		(x << 8)
 #define VDO_CMDT(x)		(x << 6)
 

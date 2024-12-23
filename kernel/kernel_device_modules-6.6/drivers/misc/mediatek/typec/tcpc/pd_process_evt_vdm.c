@@ -765,7 +765,7 @@ static inline void pd_parse_tcp_dpm_evt_cvdm(struct pd_port *pd_port)
 	memcpy(pd_port->cvdm_data, cvdm_data->data,
 	       sizeof(pd_port->cvdm_data[0]) * pd_port->cvdm_cnt);
 	if ((pd_port->cvdm_data[0] & VDO_SVDM_TYPE) && pd_check_rev30(pd_port))
-		pd_port->cvdm_data[0] |= VDO_SVDM_VER(SVDM_REV20);
+		pd_port->cvdm_data[0] |= VDO_SVDM_VERS_MAJOR(SVDM_MAJOR_REV20);
 	pd_port->cvdm_svid = PD_VDO_VID(pd_port->cvdm_data[0]);
 }
 
