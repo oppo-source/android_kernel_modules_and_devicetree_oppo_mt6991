@@ -464,7 +464,10 @@ static inline uint8_t pd_get_rev(struct pd_port *pd_port, uint8_t sop_type)
 	if (sop_type == TCPC_TX_SOP) {
 		pd_rev = pd_port->pd_revision[0];
 	} else {
-		if (pe_data->explicit_contract || pe_data->cable_rev_discovered)
+		/* If PD port use PD2.0, Cable use PD2.0 too */
+		if (pd_port->pd_revision[0] == PD_REV20)
+			pd_rev = PD_REV20;
+		else if (pe_data->explicit_contract || pe_data->cable_rev_discovered)
 			pd_rev = pd_port->pd_revision[1];
 		else if (tcpc->tcpc_flags & TCPC_FLAGS_PD_REV30)
 			pd_rev = PD_REV30;

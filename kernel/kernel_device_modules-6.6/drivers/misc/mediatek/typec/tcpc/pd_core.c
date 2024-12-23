@@ -1247,7 +1247,8 @@ int pd_send_svdm_request(struct pd_port *pd_port,
 		uint32_t timer_id)
 {
 	int ret;
-	uint8_t ver = SVDM_REV10;
+	uint8_t ver_major = SVDM_MAJOR_REV10;
+	uint8_t ver_minor = SVDM_MINOR_REV0;
 	uint32_t payload[PD_DATA_OBJ_SIZE];
 
 	if (cnt > VDO_MAX_NR) {
@@ -1255,11 +1256,12 @@ int pd_send_svdm_request(struct pd_port *pd_port,
 		return -EINVAL;
 	}
 
-	if (pd_get_rev(pd_port, sop_type) >= PD_REV30)
-		ver = SVDM_REV20;
+	if (pd_get_rev(pd_port, sop_type) >= PD_REV30) {
+		ver_major = SVDM_MAJOR_REV20;
+		ver_minor = SVDM_MINOR_REV1;
+	}
 
-	payload[0] = VDO_S(svid, ver, pd_get_svdm_ver_min(pd_port, sop_type),
-			   CMDT_INIT, vdm_cmd, obj_pos);
+	payload[0] = VDO_S(svid, ver_major, ver_minor, CMDT_INIT, vdm_cmd, obj_pos);
 	memcpy(&payload[1], data_obj, sizeof(uint32_t) * cnt);
 
 	ret = pd_send_data_msg(
@@ -1274,17 +1276,19 @@ int pd_send_svdm_request(struct pd_port *pd_port,
 int pd_reply_svdm_request(struct pd_port *pd_port,
 	uint8_t reply, uint8_t cnt, uint32_t *data_obj)
 {
-	uint8_t ver = SVDM_REV10;
+	uint8_t ver_major = SVDM_MAJOR_REV10;
+	uint8_t ver_minor = SVDM_MINOR_REV0;
 	uint32_t payload[PD_DATA_OBJ_SIZE];
 	struct tcpc_device __maybe_unused *tcpc = pd_port->tcpc;
 
 	PD_BUG_ON(cnt > VDO_MAX_NR);
 
-	if (pd_check_rev30(pd_port))
-		ver = SVDM_REV20;
+	if (pd_check_rev30(pd_port)) {
+		ver_major = SVDM_MAJOR_REV20;
+		ver_minor = SVDM_MINOR_REV1;
+	}
 
-	payload[0] = VDO_REPLY(ver, pd_get_svdm_ver_min(pd_port, TCPC_TX_SOP),
-			       reply, pd_get_msg_vdm_hdr(pd_port));
+	payload[0] = VDO_REPLY(ver_major, ver_minor, reply, pd_get_msg_vdm_hdr(pd_port));
 
 	if (cnt > 0 && cnt <= PD_DATA_OBJ_SIZE - 1) {
 		PD_BUG_ON(data_obj == NULL);

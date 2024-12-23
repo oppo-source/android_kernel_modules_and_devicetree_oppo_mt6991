@@ -24,6 +24,11 @@
 
 #ifdef OPLUS_FEATURE_CHG_BASIC
 #include <oplus_chg_ic.h>
+#include <linux/ktime.h>
+#include <linux/kernel.h>
+#include <linux/jiffies.h>
+#include <linux/time.h>
+#include <linux/timer.h>
 #endif
 
 #define CHARGING_INTERVAL	10
@@ -376,6 +381,8 @@ struct mtk_charger {
 	struct mms_subscribe *wls_subs;
 	bool wls_online;
 	bool wls_charging_disable;
+	struct oplus_mms *pps_topic;
+	struct oplus_mms *cpa_topic;
 #endif
 
 	struct platform_device *pdev;
@@ -578,6 +585,11 @@ struct mtk_charger {
 	int usbtemp_dischg_disable;
 	int wls_boost_vol_start_mv;
 	int wls_boost_vol_max_mv;
+	bool tcpc_notify_icl_support;
+	struct votable *wired_suspend_votable;
+	struct votable *wired_icl_votable;
+	struct timer_list icl_suspend_timer;
+	struct work_struct tcpc_icl_unsuspend_work;
 #endif
 };
 

@@ -163,6 +163,7 @@ struct oplus_chg_wired {
 	bool vooc_started;
 	bool pd_boost_disable;
 	bool cpa_support;
+	bool common_charge_icl_support;
 
 	int chg_type;
 	int vbus_set_mv;
@@ -400,6 +401,7 @@ done:
 	oplus_wired_set_err_code(chip, err_code);
 }
 
+#define OPLUS_COMMON_CHARGE_PDSDP_ICL_MA 1500 /* common charger TD.4.10.2.V.29 fail. */
 static int oplus_wired_current_set(struct oplus_chg_wired *chip,
 				   bool vbus_changed)
 {
@@ -498,6 +500,11 @@ static int oplus_wired_current_set(struct oplus_chg_wired *chip,
 
 	icl_ma =
 		spec->input_power_mw[chip->chg_mode] * 1000 / chip->vbus_set_mv;
+
+	if (chip->common_charge_icl_support && chip->chg_type == OPLUS_CHG_USB_TYPE_PD_SDP &&
+	    chip->chg_mode == OPLUS_WIRED_CHG_MODE_DCP)
+		icl_ma = OPLUS_COMMON_CHARGE_PDSDP_ICL_MA;
+
 	switch (chip->chg_mode) {
 	case OPLUS_WIRED_CHG_MODE_QC:
 		icl_ma = min(icl_ma, spec->qc_iclmax_ma);
@@ -1278,6 +1285,7 @@ static void oplus_wired_plugin_work(struct work_struct *work)
 		vote(chip->icl_votable, HIDL_VOTER, false, 0, true);
 		vote(chip->icl_votable, MAX_VOTER, false, 0, true);
 		vote(chip->icl_votable, STRATEGY_VOTER, false, 0, true);
+		vote(chip->icl_votable, TCPC_NOTIFY_ICL_VOTER, false, 0, true);
 		chip->pd_retry_count = 0;
 		chip->qc_retry_count = 0;
 		chip->qc_action = OPLUS_ACTION_NULL;
@@ -2192,6 +2200,9 @@ static int oplus_wired_parse_dt(struct oplus_chg_wired *chip)
 		spec->non_standard_ibatmax_ma =
 			default_config.non_standard_ibatmax_ma;
 	}
+
+	chip->common_charge_icl_support = of_property_read_bool(node,
+								"oplus,common-charge-icl-support");
 
 	rc = read_unsigned_data_from_node(node, "oplus_spec,input-power-mw",
 					  (u32 *)(spec->input_power_mw),

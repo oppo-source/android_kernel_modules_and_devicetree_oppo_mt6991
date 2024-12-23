@@ -489,7 +489,7 @@
 	pd-data {
 		pd,charging-policy = <0>;
 		pd,sink-pdo-size = <3>;
-		pd,sink-pdo-data = <0x000190c8 0x0002d096 0xc0dc3264>;
+		pd,sink-pdo-data = <0x000190c8 0x0002d096 0xc0dc1e64>;
 	};
 };
 //#endif OPLUS_FEATURE_CHG_BASIC
