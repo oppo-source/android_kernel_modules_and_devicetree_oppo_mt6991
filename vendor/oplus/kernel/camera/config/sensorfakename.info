@@ -1,0 +1,28 @@
+#project      hardware_name    fake_name     des
+Konka_23105   IMX966           konkamain     main cam
+Konka_23105   IMX615           konkafront    front cam
+Konka_23105   S5KJN5           konkauwide    ultra wide cam
+Konka_23105   IMX882           konkatele     tele cam
+Konka_23105   IMX858           konkautele    ultra tele cam
+Yala_23101    IMX906           yalamain      main cam
+brza_24613    IMX882           brzaamain     main cam
+brza_24613    IMX471           brzafront     front cam
+brza_24613    OV08D            brzauwide     ultra wide cam
+brzb_24720    IMX896           brzbmain      main cam
+brzb_24720    IMX471           brzbfront     front cam
+brzb_24720    IMX615           brzbfront2    front cam
+brzb_24720    OV08D            brzbuwide     ultra wide cam
+targa_24618   IMX896           targamain     main cam
+targa_24618   IMX471           targafront    front cam
+targa_24618   OV08D            targauwide    ultra wide cam
+ZhuqueC1_24071   OV50E40       zhuquec1main      main cam
+ZhuqueC1_24071   OV50D40       zhuquec1wide      ultra wide cam
+ZhuqueC1_24071   S5KJN5        zhuquec1tele      tele cam
+ZhuqueC1_24071   S5KJN5        zhuquec1front     front cam
+ZhuqueS1_24325   OV50E40       zhuques1main      main cam
+ZhuqueS1_24325   OV50D40       zhuques1wide      ultra wide cam
+ZhuqueS1_24325   S5KJN5        zhuques1tele      tele cam
+ZhuqueS1_24325   S5KJN5        zhuques1front     front cam
+emira_24813   IMX906           emiramain     main cam
+emira_24813   IMX480           emirafront    front cam
+emira_24813   OV08D            emirauwide    uwide cam
