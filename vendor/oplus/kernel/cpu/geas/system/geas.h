@@ -1,0 +1,14 @@
+
+#ifndef _OPLUS_GEAS_H_
+#define _OPLUS_GEAS_H_
+
+#define EVENT_INSTR 0x8
+#define EVENT_CPU_CYCLES 0x11
+#define EVENT_LL_REFILE 0x17
+#define EVENT_SLC_REFILE 0x1000
+#define EVENT_STALL_BE_MEM 0x4005
+#define EVENT_L2D_CACHE_WB_VICTIM 0x56
+#define EVENT_L2D_CACHE_HWPRF 0x8155
+
+#endif /*_OPLUS_GEAS_H_*/
+

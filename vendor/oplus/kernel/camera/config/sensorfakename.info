@@ -1,0 +1,12 @@
+#project      hardware_name    fake_name     des
+Konka_23105   IMX966           konkamain     main cam
+Konka_23105   IMX615           konkafront    front cam
+Konka_23105   S5KJN5           konkauwide    ultra wide cam
+Konka_23105   IMX882           konkatele     tele cam
+Konka_23105   IMX858           konkautele    ultra tele cam
+Yala_23101    IMX906           yalamain      main cam
+emira_24813   IMX906           emiramain     main cam
+emira_24813   IMX480           emirafront    front cam
+emira_24813   OV08D            emirauwide    uwide cam
+himalayan_25922   SC820CS       himalayanmain     main cam
+himalayan_25922   SC820CS       himalayanfront    front cam
