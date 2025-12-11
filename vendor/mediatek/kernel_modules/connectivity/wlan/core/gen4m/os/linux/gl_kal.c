@@ -51,6 +51,7 @@
 #include <net/ipv6.h>
 #include <net/sch_generic.h>
 #include <linux/skbuff.h>
+#include <linux/version.h>
 #include <linux/module.h>
 #include <linux/debugfs.h>
 #if CFG_SUPPORT_THERMAL_QUERY
@@ -4841,6 +4842,18 @@ kalQoSFrameClassifierAndPacketInfo(struct GLUE_INFO *prGlueInfo,
 	if (prSkb->android_kabi_reserved2 & TX_STREAM_ACCELERATE_FLAG == TX_STREAM_ACCELERATE_FLAG) {
 		prTxPktInfo->ucPriorityParam = NIC_TX_PRIORITY_DATA_TID;
 	}
+#endif
+
+#ifdef CONFIG_ANDROID_KABI_RESERVE
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(6, 12, 0))
+	if ((prSkb->android_kabi_reserved2 & TX_STREAM_ACCELERATE_FLAG) == TX_STREAM_ACCELERATE_FLAG) {
+		prTxPktInfo->ucPriorityParam = NIC_TX_PRIORITY_DATA_TID;
+	}
+#else
+	if ((prSkb->__kabi_reserved2 & TX_STREAM_ACCELERATE_FLAG) == TX_STREAM_ACCELERATE_FLAG) {
+		prTxPktInfo->ucPriorityParam = NIC_TX_PRIORITY_DATA_TID;
+	}
+#endif
 #endif
 
 	/* 4 <6> Retrieve Packet Information - DA */

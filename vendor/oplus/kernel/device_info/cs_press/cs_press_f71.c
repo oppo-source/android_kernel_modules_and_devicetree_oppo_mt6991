@@ -1034,7 +1034,19 @@ void report_camera_key(void)
         }
         if (g_cs_press.is_physical_tap_down && (((action == ACTION_UP) && (level & BIT_LEVEL_TOUCH))
                     /*|| (!(rbuf[1] & BIT_ACTION_LIFT_PHYSICAL_DOWN) && !(rbuf[0] & BIT_ACTION_PHYSICAL_TOUCHING))*/)) {
-            LOG_INFO("[REPORT_KEY]KEY_PHYSICAL_TAP up\n");
+            if(g_cs_press.is_heavy_tap_down) {
+                LOG_INFO("[REPORT_KEY]KEY_HEAVY_TAP up\n");
+                input_report_key(cs_input_dev, KEY_HEAVY_TAP, 0);
+                input_sync(cs_input_dev);
+                g_cs_press.is_heavy_tap_down = false;
+            }
+            if(g_cs_press.is_light_tap_down) {
+                LOG_INFO("[REPORT_KEY]KEY_LIGHT_TAP up\n");
+                input_report_key(cs_input_dev, KEY_LIGHT_TAP, 0);
+                input_sync(cs_input_dev);
+                g_cs_press.is_light_tap_down = false;
+            }
+	    LOG_INFO("[REPORT_KEY]KEY_PHYSICAL_TAP up\n");
             input_report_key(cs_input_dev, KEY_PHYSICAL_TAP, 0);
             input_sync(cs_input_dev);
             g_cs_press.is_physical_tap_down = false;

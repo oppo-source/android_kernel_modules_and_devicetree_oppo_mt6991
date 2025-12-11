@@ -126,6 +126,12 @@ static void c2ps_notifier_init(
 		return;
 	}
 
+	set_eas_setting();
+	c2ps_set_ineff_cpu_freq_ceiling(0, ineff_cpu_ceiling_freq0);
+	c2ps_set_ineff_cpu_freq_ceiling(1, ineff_cpu_ceiling_freq1);
+	c2ps_set_ineff_cpu_freq_ceiling(2, ineff_cpu_ceiling_freq2);
+	cache_possible_config_cpu_freq_info();
+
 	self_uninit_timer.expires = jiffies + 5*HZ;
 	timer_setup(&self_uninit_timer, self_uninit_timer_callback, 0);
 	add_timer(&self_uninit_timer);
@@ -139,12 +145,6 @@ static void c2ps_notifier_init(
 	else
 		set_wl_manual(0);
 	c2ps_regulator_init();
-
-	set_eas_setting();
-	c2ps_set_ineff_cpu_freq_ceiling(0, ineff_cpu_ceiling_freq0);
-	c2ps_set_ineff_cpu_freq_ceiling(1, ineff_cpu_ceiling_freq1);
-	c2ps_set_ineff_cpu_freq_ceiling(2, ineff_cpu_ceiling_freq2);
-	cache_possible_config_cpu_freq_info();
 }
 
 static void c2ps_notifier_uninit(void)
@@ -475,7 +475,6 @@ int c2ps_notify_init(
 
 	c2ps_regulator_um_min = um_floor > 0 ? um_floor : DEFAULT_UM_MIN;
 
-	trigger_bg_policy();
 	vpPush->ePushType = C2PS_NOTIFIER_INIT;
 	vpPush->camfps = cfg_camfps;
 	vpPush->ineff_cpu_ceiling_freq0 = ineff_cpu_ceiling_freq0;
@@ -528,7 +527,6 @@ int c2ps_notify_add_task(
 	c2ps_notifier_add_task(task_id, task_target_time, default_uclamp,
 			group_head, task_group_target_time, is_vip_task, is_dynamic_tid,
 			is_enable_dep_thread, task_name);
-	trigger_bg_policy();
 	return 0;
 }
 
@@ -571,33 +569,19 @@ int c2ps_notify_task_end(int pid, int task_id)
 	return 0;
 }
 
-int c2ps_notify_task_scene_change(int task_id, int scene_mode)
+int c2ps_notify_task_scene_change(
+	int task_id __maybe_unused, int scene_mode __maybe_unused)
 {
-	C2PS_LOGD("task_id: %d\n", task_id);
-	if (unlikely(monitor_task_scene_change(task_id, scene_mode))) {
-		C2PS_LOGE("monitor_task_scene_change failed\n");
-		return -1;
-	}
 	return 0;
 }
 
 int c2ps_notify_vsync(void)
 {
-	C2PS_LOGD("+\n");
-	if (unlikely(monitor_vsync(c2ps_get_time()))) {
-		C2PS_LOGE("monitor_vsync failed\n");
-		return -1;
-	}
 	return 0;
 }
 
-int c2ps_notify_camfps(int camfps)
+int c2ps_notify_camfps(int camfps __maybe_unused)
 {
-	C2PS_LOGD("camfps: %d\n", camfps);
-	if (unlikely(monitor_camfps(camfps))) {
-		C2PS_LOGE("monitor_camfps failed\n");
-		return -1;
-	}
 	return 0;
 }
 
