@@ -1,0 +1,191 @@
+// SPDX-License-Identifier: GPL-2.0-only
+/*
+* Copyright (C) 2021-2020 Oplus. All rights reserved.
+*/
+#include <dt-bindings/iio/mt635x-auxadc.h>
+#include <dt-bindings/pinctrl/mt6373-pinfunc.h>
+#include <dt-bindings/pinctrl/mt65xx.h>
+
+
+/* charge start */
+&regulator_vibrator{
+	status = "disabled";
+};
+
+&ssusb {
+	maximum-speed = "high-speed";
+};
+
+&u2port0 {
+	mediatek,eye-vrt = <4>;
+	mediatek,eye-term = <7>;
+	mediatek,rev6 = <2>;
+	mediatek,eye-vrt-host = <0>;
+	mediatek,eye-term-host = <4>;
+	mediatek,rev6-host = <2>;
+	mediatek,rx-sqth = <2>;
+	mediatek,discth = <0xa>;
+};
+
+&i2c1 {
+	status = "okay";
+	clock-frequency = <1000000>;
+	aw_haptic@5A {
+		status = "ok";
+		compatible = "oplus,aw_haptic";
+		reg = <0x5A>;
+		reset-gpio = <&pio 22 0x00>;
+		irq-gpio = <&pio 25 0x00>;
+		bus_id-lk = <1>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&aw_irq_gpio_default>;
+
+		qcom,device_id = <809>; /* 809 */
+
+		oplus,livetap_support;
+		oplus,drv2_time = /bits/ 8 <0x30>;
+		oplus,auto_break_mode_support;
+
+		aw8693xs_boost_voltage = <0x11>;
+		aw8693xs_vmax = /bits/ 8 < 0x11 0x11 0x11 0x11 0x11 0x11 0x11 0x11 0x11 0x11 0x11 0x11
+					0x11 0x11 0x11 0x11 0x11 0x11 0x11 0x11 0x11 0x11 0x11 0x11 0x11 >;
+		aw8693xs_gain = /bits/ 8 < 0x00 0x0b 0x10 0x15 0x1b 0x20 0x25 0x2b 0x31 0x36 0x3c 0x41
+					0x47 0x50 0x5a 0x60 0x64 0x67 0x6b 0x6e 0x72 0x75 0x79 0x7c 0x7e >;
+
+		aw8693xs_cont_brk_gain = /bits/ 8 < 0x08 >;
+		aw8693xs_cont_brk_time = /bits/ 8 < 0x08 >;
+		aw8693xs_d2s_gain = /bits/ 8 < 0x04 >;
+		aw8693xs_bemf_d2s_gain = /bits/ 8 < 0x04 >;
+		aw8693xs_is_enabled_vbat_pro;
+		oplus,vbat_low_soc = <5>;
+		oplus,vbat_low_soc_cold = <20>;
+		oplus,vbat_low_temp = <(-50)>; /*-5C*/
+		oplus,vbat_low_vmax_level = <1800>;
+
+	};
+};
+
+&i2c1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&i2c1_mode_default>;
+};
+
+&pio{
+	aw_irq_gpio_default: aw_irq_gpio_default {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO25__FUNC_GPIO25>;
+			input-enable;
+			bias-pull-up;
+		};
+	};
+
+	i2c1_mode_default: i2c1_mode_default {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO139__FUNC_SCL1>,
+				 <PINMUX_GPIO140__FUNC_SDA1>;
+			bias-pull-up = <MTK_PULL_SET_RSEL_111>;
+		};
+	};
+};
+
+&soc {
+	feedback_fb: feedback_fb {
+		compatible = "oplus,haptic-feedback";
+	};
+};
+
+&lk_charger {
+	/*0:pmic_vib 1:gpio_vib 2:si_vib 3:aw_vib*/
+	vibr_scheme = <3>;
+};
+
+&soc {
+	pwm_fan: pwm_fan {
+		compatible = "oplus,pwm-fan";
+		status = "okay";
+
+		vdd-supply = <&mt6368_vfp>;
+		vdd-min-vol = <3000000>;
+		vdd-max-vol = <3000000>;
+
+		pwm-num = <2>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&fan_irq_gpio_default &fan_pwm_gpio_default>;
+
+		fg-irq-gpio = <&pio 4 0x2008>;
+
+		fan,device_id0 {
+			pulses-per-revolution = <2>;
+			duty-config = <30 30 40 50 60 70 80 90 100>;//level 1 ~ level 9
+			rpm-offset-config = <40 1000 50 1500 100 1800>;
+		};
+
+		fan,device_id1 {
+			pulses-per-revolution = <3>;
+			duty-config = <30 30 40 60 60 70 80 90 100>;//level 1 ~ level 9
+			rpm-offset-config = <40 1000 50 1500 100 1800>;
+		};
+	};
+};
+
+&pio{
+	fan_irq_gpio_default: fan_irq_gpio_default {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO4__FUNC_GPIO4>;
+			input-enable;
+			bias-pull-up;
+		};
+	};
+	fan_pwm_gpio_default: fan_pwm_gpio_default {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO121__FUNC_PWM_2>;
+			output-enable;
+			bias-pull-up;
+		};
+	};
+};
+
+&i2c0 {
+	status = "okay";
+	clock-frequency = <400000>; // 400k
+	aw22xxx_led@6a {
+		compatible = "awinic,aw22xxx_led";
+		reg = <0x6a>;
+		reset-gpio = <&pio 78 0>;
+		irq-gpio = <&pio 48 0>;
+		vbled-supply = <&mt6368_vio28>;
+		vbled_volt = <3300000>;
+		status = "okay";
+
+		aw22xxx,group_brightness_coefficient = <0 1 2 3 4 5>;
+		oplus,backcolor-support;
+		oplus,color-mapping-support;
+		oplus,trace-fault-support;
+		oplus,group-0 {
+			id = <0>;
+			group-name = "all";
+			led-range = <0 1 2 3 4 5>;
+			effect-map-index = <0>;
+		};
+		oplus,group-1 {
+			id = <1>;
+			group-name = "ambient";
+			led-range = <2 3 4 5>;
+			effect-map-index = <1>;
+		};
+		oplus,group-2 {
+			id = <2>;
+			group-name = "fan";
+			led-range = <0 1>;
+			effect-map-index = <2>;
+		};
+
+		aw22xxx,led-0 {
+			aw22xxx,name = "aw22xxx_led";
+			aw22xxx,imax = <1>;
+			aw22xxx,brightness = <128>;
+			aw22xxx,max_brightness = <255>;
+		};
+	};
+};
+

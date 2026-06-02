@@ -1,0 +1,54 @@
+&dsi0 {
+	dsc_params: oplus,dsc_params {
+		enable               = <1>;
+		ver                  = <17>;
+		slice_mode           = <1>;
+		rgb_swap             = <0>;
+		dsc_cfg              = <40>;
+		rct_on               = <1>;
+		bit_per_channel      = <10>;
+		dsc_line_buf_depth   = <11>;
+		bp_enable            = <1>;
+		bit_per_pixel        = <128>;
+		pic_height           = <2760>;
+		pic_width            = <1256>;
+		slice_height         = <20>;
+		slice_width          = <628>;
+		chunk_size           = <628>;
+		xmit_delay           = <512>;
+		dec_delay            = <571>;
+		scale_value          = <32>;
+		increment_interval   = <460>;
+		decrement_interval   = <8>;
+		line_bpg_offset      = <12>;
+		nfl_bpg_offset       = <1294>;
+		slice_bpg_offset     = <1124>;
+		initial_offset       = <6144>;
+		final_offset         = <4352>;
+		flatness_minqp       = <7>;
+		flatness_maxqp       = <16>;
+		rc_model_size        = <8192>;
+		rc_edge_factor       = <6>;
+		rc_quant_incr_limit0 = <15>;
+		rc_quant_incr_limit1 = <15>;
+		rc_tgt_offset_hi     = <3>;
+		rc_tgt_offset_lo     = <3>;
+
+		ext_pps_cfg {
+			enable = <1>;
+			oplus,rc-buf-thresh = <
+				896 1792 2688 3584 4480 5376 6272 6720 7168 7616 7744 7872 8000 8064
+			>;
+			oplus,range-min-qp = <
+				0 4 5 5 7 7 7 7 7 7 9 9 9 11 17
+			>;
+			oplus,range-max-qp = <
+				8 8 9 10 11 11 11 12 13 14 15 16 17 17 19
+			>;
+			oplus,range-bpg-ofs = <
+				0x02 0x00 0x00 0xFFFFFFFE 0xFFFFFFFC 0xFFFFFFFA 0xFFFFFFF8 0xFFFFFFF8
+				0xFFFFFFF8 0xFFFFFFF6 0xFFFFFFF6 0xFFFFFFF4 0xFFFFFFF4 0xFFFFFFF4 0xFFFFFFF4
+			>;
+		};
+	};
+};

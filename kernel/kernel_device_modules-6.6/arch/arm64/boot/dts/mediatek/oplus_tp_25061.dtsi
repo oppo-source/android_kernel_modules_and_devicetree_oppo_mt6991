@@ -1,0 +1,134 @@
+
+#include <dt-bindings/pinctrl/mt6991-pinfunc.h>
+
+/* TOUCH start */
+
+&spi6 {
+	status = "okay";
+	#address-cells = <1>;
+	#size-cells = <0>;
+	mediatek,tickdly = <23>, <23>;
+
+	goodix@0{
+		status = "disabled";
+	};
+
+	multi-touchscreen@0{
+		status = "disabled";
+	};
+
+	hbp_spi_bus0:hbp_spi@0 {
+		compatible = "oplus,hbp_spi_bus";
+		reg = <0x0>;
+		status = "okay";
+
+		spi-max-frequency = <19000000>;
+		bus,spi-mode = <0>;
+		bus,rx-dummy = <0>;
+		bus,tx-dummy = <0>;
+	};
+};
+
+&soc {
+	gt9926:gt9926@0 {
+		compatible = "goodix,gt9926";
+		status = "okay";
+
+		device,id = <0>;
+		device,chip_name = "gt9926";
+		device,resolution = <20352 44352>;
+
+		/*interrupt config*/
+		interrupt-parent = <&pio>;
+		interrupts = <7 0x2002>;
+		irq-gpio = <&pio 7 0x2002>;
+
+		pinctrl-names = "default",
+				"ts_reset_active",
+				"ts_reset_idle",
+				"ts_resume",
+				"ts_suspend";
+		pinctrl-0 = <&ctp_oplus_int_active &ctp_oplus_reset_active>;
+		pinctrl-1 = <&ctp_oplus_reset_active>;
+		pinctrl-2 = <&ctp_oplus_reset_suspend>;
+		pinctrl-3 = <&ctp_oplus_spi_active>;
+		pinctrl-4 = <&ctp_oplus_spi_suspend>;
+
+		/*cs active state, not used now*/
+		spi,cs_active = <0>;
+
+		/*power config*/
+		power,avdd-supply = <&mt6373_vtp>;
+		power,avdd_volt = <3300000 3300000>;
+
+		power,vddi-supply = <&mt6373_vant18>;
+		power,vddi_volt = <1800000 1800000>;
+
+		/*bus config*/
+		device,attached_bus = <&hbp_spi_bus0>;
+	};
+
+	hbp:hbp@0 {
+		compatible = "oplus,hbp_core";
+		hbp,project = "lux-h";
+		hbp,devices = <&gt9926>;
+	};
+};
+
+/*add for  TP*/
+&pio {
+	ctp_oplus_pins_default: pins_default {
+	};
+	ctp_oplus_int_active: int1_active {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO7__FUNC_GPIO7>;
+			bias-disable;
+			input-enable;
+		};
+	};
+	ctp_oplus_reset_active: reset1_active {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO3__FUNC_GPIO3>;
+			output-high;
+		};
+	};
+	ctp_oplus_int_suspend: int1_suspend {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO7__FUNC_GPIO7>;
+			output-low;
+		};
+	};
+	ctp_oplus_reset_suspend: reset1_suspend {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO3__FUNC_GPIO3>;
+			output-low;
+		};
+	};
+	ctp_oplus_spi_active: spi_active {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO82__FUNC_SPI6_B_CSB>,
+				<PINMUX_GPIO83__FUNC_SPI6_B_MO>,
+				<PINMUX_GPIO81__FUNC_SPI6_B_CLK>;
+			bias-disable;
+			drive-strength = <2>;
+		};
+	};
+	ctp_oplus_spi_mosi_active: spi_mosi_active {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO84__FUNC_SPI6_B_MI>;
+			bias-pull-up;
+			drive-strength = <4>;
+		};
+	};
+	ctp_oplus_spi_suspend: spi_suspend {
+		pins_cmd_dat {
+			pinmux = < PINMUX_GPIO84__FUNC_GPIO84>,
+				< PINMUX_GPIO83__FUNC_GPIO83>,
+				<PINMUX_GPIO82__FUNC_GPIO82>,
+				<PINMUX_GPIO81__FUNC_GPIO81>;
+			bias-disable;
+			output-low;
+			drive-strength = <4>;
+		};
+	};
+};

@@ -1,0 +1,885 @@
+&panel_ac390_p_7_a0034_dsi_vdo {
+	oplus,dsi-display-panel@0 {
+		reg = <0>;
+		oplus,dsi-vendor-name = "A0034";
+		oplus,dsi-manufacture = "P_7";
+		oplus,dsi-display-timings {
+			timing@sa_fhd_120 {
+				cell-index = <0>;
+				oplus,dsi-panel-framerate = <120>;
+				oplus,dsi-panel-pllclk = <687>;
+				#include "panel-ac390-p-7-a0034-dsi-vdo-common.dtsi"
+
+				oplus,dsi-on-command = [
+					39 00 00 40 00 00 04 FF 5A A5 07
+					15 00 00 40 00 00 02 A0 24
+					15 00 00 40 00 00 02 C2 08
+
+					//1bit esd check
+					39 00 00 40 00 00 04 FF 5A A5 06
+					15 00 00 40 00 00 02 C6 81
+					39 00 00 40 00 00 04 FF 5A A5 08
+					15 00 00 40 00 00 02 D7 00
+					39 00 00 40 00 00 04 FF 5A A5 08
+					39 00 00 40 00 00 09 ED FF FF FF FF FF FF FF FF
+					39 00 00 40 00 00 09 EE FF FF FF FF FF FF FF FF
+					//enable AP_ESD Check
+					39 00 00 40 00 00 04 FF 5A A5 08
+					15 00 00 40 00 00 02 D2 01
+					15 00 00 40 00 00 02 D3 00
+					15 00 00 40 00 00 02 D4 00
+					15 00 00 40 00 00 02 F5 00
+					15 00 00 40 00 00 02 F6 00
+					15 00 00 40 00 00 02 F7 00
+					39 00 00 00 00 00 04 FF 5A A5 00
+
+					//改善整机gamma偏低问题
+					39 00 00 40 00 00 04 FF 5A A5 15
+					15 00 00 40 00 00 02 D2 90
+					//SPR 边缘偏色优化更新
+					39 00 00 40 00 00 04 FF 5A A5 14
+					39 00 00 40 00 00 07 A4 00 04 00 04 60 80
+					//AOD DBV不写normal部分
+					39 00 00 40 00 00 04 FF 5A A5 06
+					15 00 00 40 00 00 02 B6 09
+					15 00 00 00 00 00 02 B7 03
+
+					//Sleep out don't reload OTP
+					39 00 00 40 00 00 04 FF 5A A5 08
+					15 00 00 00 00 00 02 C8 62
+					39 00 00 40 00 00 04 FF 5A A5 06
+					15 00 00 40 00 00 02 B6 09
+					15 00 00 40 00 00 02 B7 03
+
+					//hsync compensate
+					39 00 00 40 00 00 04 FF 5A A5 07
+					15 00 00 40 00 00 02 C4 01
+					15 00 00 40 00 00 02 C0 00
+					39 00 00 40 00 00 04 FF 5A A5 09
+					39 00 00 00 00 00 06 98 15 00 00 00 0C
+
+					//Hsync&Vsync output
+					39 00 00 40 00 00 04 FF 5A A5 02
+					39 00 00 40 00 00 05 AF 00 00 C0 01
+					39 00 00 40 00 00 03 88 08 C0
+					39 00 00 40 00 00 04 FF 5A A5 2D
+					39 00 00 40 00 00 06 E3 40 0B 00 00 D1
+					39 00 00 00 00 00 25 EF 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+
+					39 00 00 40 00 00 04 FF 5A A5 00
+					//IRC ON
+					15 00 00 40 00 00 02 B9 01
+					//120hz
+					15 00 00 40 00 00 02 D0 00
+					15 00 00 40 00 00 02 D1 05
+					15 00 00 40 00 00 02 71 01
+					//DBV setting
+					15 00 00 40 00 00 02 35 00
+					15 00 00 40 00 00 02 53 24
+					39 00 00 00 00 00 03 51 00 00
+
+					15 00 00 00 78 00 02 11 00
+					15 00 00 00 00 00 02 29 00
+				];
+
+
+				oplus,dsi-aod-off-command = [
+					39 00 00 40 00 00 04 FF 5A A5 00
+					39 00 00 40 00 00 01 38
+					39 00 00 40 00 00 02 D0 00
+					39 00 00 40 00 00 04 FF 5A A5 07
+					39 00 00 40 00 00 02 D4 90
+					39 00 00 00 00 00 04 FF 5A A5 00
+				];
+
+				oplus,dsi-on-command-state = "dsi_lp_mode";
+				oplus,dsi-aod-off-command-state = "dsi_ls_mode";
+
+				oplus,dsc-params-entries = <&dsc_params>;
+				/*oplus,phy-timcon {
+					hs-trail = <14>;
+					clk-trail = <15>;
+				};*/
+				oplus,dyn-fps {
+					switch_en = <1>;
+					dfps_cmd_num = <11>;
+					vact_timing_fps = <120>;
+					dyn_fps_data_rate;
+					oplus_dyn_fps_dfps_cmd_table0 = [00 04 FF 5A A5 20];
+					oplus_dyn_fps_dfps_cmd_table1 = [00 02 BC 32];
+					oplus_dyn_fps_dfps_cmd_table2 = [00 02 BD 54];
+					oplus_dyn_fps_dfps_cmd_table3 = [00 04 FF 5A A5 00];
+					oplus_dyn_fps_dfps_cmd_table4 = [00 02 D0 00];
+					oplus_dyn_fps_dfps_cmd_table5 = [00 04 FF 5A A5 53];
+					oplus_dyn_fps_dfps_cmd_table6 = [00 15 A5 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00];
+					oplus_dyn_fps_dfps_cmd_table7 = [00 15 A6 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00];
+					oplus_dyn_fps_dfps_cmd_table8 = [00 15 A7 20 20 20 20 20 20 20 20 20 20 00 00 00 00 00 00 00 00 00 00];
+					oplus_dyn_fps_dfps_cmd_table9 = [00 0B A8 F0 F0 F0 F0 F0 F0 F0 F0 F0 F0];
+					oplus_dyn_fps_dfps_cmd_table10 = [00 04 FF 5A A5 00];
+
+					apollo_limit_superior_us = <4900>;
+					apollo_limit_inferior_us = <6750>;
+					apollo_transfer_time_us = <6200>;
+				};
+				oplus,display-mode {
+					display-mode@0 {
+						hdisplay = <1272>;
+						vdisplay = <2772>;
+						fhd-hfp = <210>;
+						fhd-hsa = <12>;
+						fhd-hbp = <12>;
+						fhd-vfp = <80>;
+						fhd-vsa = <2>;
+						fhd-vbp = <26>;
+						hskew = <STANDARD_ADFR>;
+					};
+					display-mode@1 {
+						hdisplay = <1080>;
+						vdisplay = <2354>;
+						fhd-hfp = <210>;
+						fhd-hsa = <12>;
+						fhd-hbp = <12>;
+						fhd-vfp = <80>;
+						fhd-vsa = <2>;
+						fhd-vbp = <26>;
+						hskew = <STANDARD_ADFR>;
+					};
+				};
+			};
+
+			timing@sa_fhd_60 {
+				cell-index = <1>;
+				oplus,dsi-panel-framerate = <60>;
+				oplus,dsi-panel-pllclk = <687>;
+				#include "panel-ac390-p-7-a0034-dsi-vdo-common.dtsi"
+
+				oplus,dsi-on-command = [
+					39 00 00 40 00 00 04 FF 5A A5 07
+					15 00 00 40 00 00 02 A0 24
+					15 00 00 40 00 00 02 C2 08
+
+					//1bit esd check
+					39 00 00 40 00 00 04 FF 5A A5 06
+					15 00 00 40 00 00 02 C6 81
+					39 00 00 40 00 00 04 FF 5A A5 08
+					15 00 00 40 00 00 02 D7 00
+					39 00 00 40 00 00 04 FF 5A A5 08
+					39 00 00 40 00 00 09 ED FF FF FF FF FF FF FF FF
+					39 00 00 40 00 00 09 EE FF FF FF FF FF FF FF FF
+					//enable AP_ESD Check
+					39 00 00 40 00 00 04 FF 5A A5 08
+					15 00 00 40 00 00 02 D2 01
+					15 00 00 40 00 00 02 D3 00
+					15 00 00 40 00 00 02 D4 00
+					15 00 00 40 00 00 02 F5 00
+					15 00 00 40 00 00 02 F6 00
+					15 00 00 40 00 00 02 F7 00
+					39 00 00 00 00 00 04 FF 5A A5 00
+
+					//改善整机gamma偏低问题
+					39 00 00 40 00 00 04 FF 5A A5 15
+					15 00 00 40 00 00 02 D2 90
+					//SPR 边缘偏色优化更新
+					39 00 00 40 00 00 04 FF 5A A5 14
+					39 00 00 40 00 00 07 A4 00 04 00 04 60 80
+					//AOD DBV不写normal部分
+					39 00 00 40 00 00 04 FF 5A A5 06
+					15 00 00 40 00 00 02 B6 09
+					15 00 00 00 00 00 02 B7 03
+
+					//Sleep out don't reload OTP
+					39 00 00 40 00 00 04 FF 5A A5 08
+					15 00 00 00 00 00 02 C8 62
+					39 00 00 40 00 00 04 FF 5A A5 06
+					15 00 00 40 00 00 02 B6 09
+					15 00 00 40 00 00 02 B7 03
+
+					//hsync compensate
+					39 00 00 40 00 00 04 FF 5A A5 07
+					15 00 00 40 00 00 02 C4 01
+					15 00 00 40 00 00 02 C0 00
+					39 00 00 40 00 00 04 FF 5A A5 09
+					39 00 00 00 00 00 06 98 15 00 00 00 0C
+
+					//Hsync&Vsync output
+					39 00 00 40 00 00 04 FF 5A A5 02
+					39 00 00 40 00 00 05 AF 00 00 C0 01
+					39 00 00 40 00 00 03 88 08 C0
+					39 00 00 40 00 00 04 FF 5A A5 2D
+					39 00 00 40 00 00 06 E3 40 0B 00 00 D1
+					39 00 00 00 00 00 25 EF 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+
+					39 00 00 40 00 00 04 FF 5A A5 00
+					//IRC ON
+					15 00 00 40 00 00 02 B9 01
+					//60hz
+					15 00 00 40 00 00 02 D0 20
+					15 00 00 40 00 00 02 D1 05
+					15 00 00 40 00 00 02 71 01
+					//DBV setting
+					15 00 00 40 00 00 02 35 00
+					15 00 00 40 00 00 02 53 24
+					39 00 00 00 00 00 03 51 00 00
+
+					15 00 00 00 78 00 02 11 00
+					15 00 00 00 00 00 02 29 00
+				];
+
+				oplus,dsi-aod-off-command = [
+					39 00 00 40 00 00 04 FF 5A A5 00
+					39 00 00 40 00 00 01 38
+					39 00 00 40 00 00 02 D0 00
+					39 00 00 40 00 00 04 FF 5A A5 07
+					39 00 00 40 00 00 02 D4 90
+					39 00 00 00 00 00 04 FF 5A A5 00
+				];
+
+				oplus,dsi-on-command-state = "dsi_lp_mode";
+				oplus,dsi-aod-off-command-state = "dsi_ls_mode";
+
+				oplus,dsc-params-entries = <&dsc_params>;
+				/*oplus,phy-timcon {
+					hs-trail = <14>;
+					clk-trail = <15>;
+				};*/
+				oplus,dyn-fps {
+					switch_en = <1>;
+					dfps_cmd_num = <11>;
+					vact_timing_fps = <120>;
+					dyn_fps_data_rate;
+					oplus_dyn_fps_dfps_cmd_table0 = [00 04 FF 5A A5 20];
+					oplus_dyn_fps_dfps_cmd_table1 = [00 02 BC 42];
+					oplus_dyn_fps_dfps_cmd_table2 = [00 02 BD 53];
+					oplus_dyn_fps_dfps_cmd_table3 = [00 04 FF 5A A5 00];
+					oplus_dyn_fps_dfps_cmd_table4 = [00 02 D0 20];
+					oplus_dyn_fps_dfps_cmd_table5 = [00 04 FF 5A A5 53];
+					oplus_dyn_fps_dfps_cmd_table6 = [00 15 A5 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00];
+					oplus_dyn_fps_dfps_cmd_table7 = [00 15 A6 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00];
+					oplus_dyn_fps_dfps_cmd_table8 = [00 15 A7 20 20 20 20 20 20 20 20 20 20 00 00 00 00 00 00 00 00 00 00];
+					oplus_dyn_fps_dfps_cmd_table9 = [00 0B A8 F0 F0 F0 F0 F0 F0 F0 F0 F0 F0];
+					oplus_dyn_fps_dfps_cmd_table10 = [00 04 FF 5A A5 00];
+
+					apollo_limit_superior_us = <10000>;
+					apollo_limit_inferior_us = <13596>;
+					apollo_transfer_time_us = <8200>;
+				};
+				oplus,display-mode {
+					display-mode@0 {
+						hdisplay = <1272>;
+						vdisplay = <2772>;
+						fhd-hfp = <210>;
+						fhd-hsa = <12>;
+						fhd-hbp = <12>;
+						fhd-vfp = <2960>;
+						fhd-vsa = <2>;
+						fhd-vbp = <26>;
+						hskew = <STANDARD_ADFR>;
+					};
+					display-mode@1 {
+						hdisplay = <1080>;
+						vdisplay = <2354>;
+						fhd-hfp = <210>;
+						fhd-hsa = <12>;
+						fhd-hbp = <12>;
+						fhd-vfp = <2960>;
+						fhd-vsa = <2>;
+						fhd-vbp = <26>;
+						hskew = <STANDARD_ADFR>;
+					};
+				};
+			};
+
+			timing@sa_fhd_90 {
+				cell-index = <2>;
+				oplus,dsi-panel-framerate = <90>;
+				oplus,dsi-panel-pllclk = <687>;
+				#include "panel-ac390-p-7-a0034-dsi-vdo-common.dtsi"
+
+				oplus,dsi-on-command = [
+					39 00 00 40 00 00 04 FF 5A A5 07
+					15 00 00 40 00 00 02 A0 24
+					15 00 00 40 00 00 02 C2 08
+
+					//1bit esd check
+					39 00 00 40 00 00 04 FF 5A A5 06
+					15 00 00 40 00 00 02 C6 81
+					39 00 00 40 00 00 04 FF 5A A5 08
+					15 00 00 40 00 00 02 D7 00
+					39 00 00 40 00 00 04 FF 5A A5 08
+					39 00 00 40 00 00 09 ED FF FF FF FF FF FF FF FF
+					39 00 00 40 00 00 09 EE FF FF FF FF FF FF FF FF
+					//enable AP_ESD Check
+					39 00 00 40 00 00 04 FF 5A A5 08
+					15 00 00 40 00 00 02 D2 01
+					15 00 00 40 00 00 02 D3 00
+					15 00 00 40 00 00 02 D4 00
+					15 00 00 40 00 00 02 F5 00
+					15 00 00 40 00 00 02 F6 00
+					15 00 00 40 00 00 02 F7 00
+					39 00 00 00 00 00 04 FF 5A A5 00
+
+					//改善整机gamma偏低问题
+					39 00 00 40 00 00 04 FF 5A A5 15
+					15 00 00 40 00 00 02 D2 90
+					//SPR 边缘偏色优化更新
+					39 00 00 40 00 00 04 FF 5A A5 14
+					39 00 00 40 00 00 07 A4 00 04 00 04 60 80
+					//AOD DBV不写normal部分
+					39 00 00 40 00 00 04 FF 5A A5 06
+					15 00 00 40 00 00 02 B6 09
+					15 00 00 00 00 00 02 B7 03
+
+					//Sleep out don't reload OTP
+					39 00 00 40 00 00 04 FF 5A A5 08
+					15 00 00 00 00 00 02 C8 62
+					39 00 00 40 00 00 04 FF 5A A5 06
+					15 00 00 40 00 00 02 B6 09
+					15 00 00 40 00 00 02 B7 03
+
+					//hsync compensate
+					39 00 00 40 00 00 04 FF 5A A5 07
+					15 00 00 40 00 00 02 C4 01
+					15 00 00 40 00 00 02 C0 00
+					39 00 00 40 00 00 04 FF 5A A5 09
+					39 00 00 00 00 00 06 98 15 00 00 00 0C
+
+					//Hsync&Vsync output
+					39 00 00 40 00 00 04 FF 5A A5 02
+					39 00 00 40 00 00 05 AF 00 00 C0 01
+					39 00 00 40 00 00 03 88 08 C0
+					39 00 00 40 00 00 04 FF 5A A5 2D
+					39 00 00 40 00 00 06 E3 40 0B 00 00 D1
+					39 00 00 00 00 00 25 EF 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+
+					39 00 00 40 00 00 04 FF 5A A5 00
+					//IRC ON
+					15 00 00 40 00 00 02 B9 01
+					//90hz
+					15 00 00 40 00 00 02 D0 10
+					15 00 00 40 00 00 02 D1 05
+					15 00 00 40 00 00 02 71 01
+					//DBV setting
+					15 00 00 40 00 00 02 35 00
+					15 00 00 40 00 00 02 53 24
+					39 00 00 00 00 00 03 51 00 00
+
+					15 00 00 00 78 00 02 11 00
+					15 00 00 00 00 00 02 29 00
+				];
+
+				oplus,dsi-aod-off-command = [
+					39 00 00 40 00 00 04 FF 5A A5 00
+					39 00 00 40 00 00 01 38
+					39 00 00 40 00 00 02 D0 00
+					39 00 00 40 00 00 04 FF 5A A5 07
+					39 00 00 40 00 00 02 D4 90
+					39 00 00 00 00 00 04 FF 5A A5 00
+				];
+
+				oplus,dsi-timing-switch-command-state = "dsi_ls_mode";
+				oplus,dsi-on-command-state = "dsi_lp_mode";
+				oplus,dsi-aod-off-command-state = "dsi_ls_mode";
+
+				oplus,dsc-params-entries = <&dsc_params>;
+				/*oplus,phy-timcon {
+					hs-trail = <14>;
+					clk-trail = <15>;
+				};*/
+				oplus,dyn-fps {
+					switch_en = <1>;
+					dfps_cmd_num = <11>;
+					vact_timing_fps = <120>;
+					dyn_fps_data_rate;
+					oplus_dyn_fps_dfps_cmd_table0 = [00 04 FF 5A A5 20];
+					oplus_dyn_fps_dfps_cmd_table1 = [00 02 BC 00];
+					oplus_dyn_fps_dfps_cmd_table2 = [00 02 BD 54];
+					oplus_dyn_fps_dfps_cmd_table3 = [00 04 FF 5A A5 00];
+					oplus_dyn_fps_dfps_cmd_table4 = [00 02 D0 10];
+					oplus_dyn_fps_dfps_cmd_table5 = [00 04 FF 5A A5 53];
+					oplus_dyn_fps_dfps_cmd_table6 = [00 15 A5 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00];
+					oplus_dyn_fps_dfps_cmd_table7 = [00 15 A6 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00];
+					oplus_dyn_fps_dfps_cmd_table8 = [00 15 A7 20 20 20 20 20 20 20 20 20 20 00 00 00 00 00 00 00 00 00 00];
+					oplus_dyn_fps_dfps_cmd_table9 = [00 0B A8 F0 F0 F0 F0 F0 F0 F0 F0 F0 F0];
+					oplus_dyn_fps_dfps_cmd_table10 = [00 04 FF 5A A5 00];
+
+					apollo_limit_superior_us = <2910>;
+					apollo_limit_inferior_us = <10000>;
+					apollo_transfer_time_us = <8400>;
+				};
+				oplus,display-mode {
+					display-mode@0 {
+						hdisplay = <1272>;
+						vdisplay = <2772>;
+						fhd-hfp = <210>;
+						fhd-hsa = <12>;
+						fhd-hbp = <12>;
+						fhd-vfp = <1064>;
+						fhd-vsa = <2>;
+						fhd-vbp = <26>;
+						hskew = <STANDARD_ADFR>;
+					};
+					display-mode@1 {
+						hdisplay = <1080>;
+						vdisplay = <2354>;
+						fhd-hfp = <210>;
+						fhd-hsa = <12>;
+						fhd-hbp = <12>;
+						fhd-vfp = <1064>;
+						fhd-vsa = <2>;
+						fhd-vbp = <26>;
+						hskew = <STANDARD_ADFR>;
+					};
+				};
+			};
+
+			timing@sa_fhd_144 {
+				cell-index = <3>;
+				oplus,dsi-panel-framerate = <144>;
+				oplus,dsi-panel-pllclk = <687>;
+				#include "panel-ac390-p-7-a0034-dsi-vdo-common.dtsi"
+
+				oplus,dsi-on-command = [
+					39 00 00 40 00 00 04 FF 5A A5 07
+					15 00 00 40 00 00 02 A0 24
+					15 00 00 40 00 00 02 C2 08
+
+					//1bit esd check
+					39 00 00 40 00 00 04 FF 5A A5 06
+					15 00 00 40 00 00 02 C6 81
+					39 00 00 40 00 00 04 FF 5A A5 08
+					15 00 00 40 00 00 02 D7 00
+					39 00 00 40 00 00 04 FF 5A A5 08
+					39 00 00 40 00 00 09 ED FF FF FF FF FF FF FF FF
+					39 00 00 40 00 00 09 EE FF FF FF FF FF FF FF FF
+					//enable AP_ESD Check
+					39 00 00 40 00 00 04 FF 5A A5 08
+					15 00 00 40 00 00 02 D2 01
+					15 00 00 40 00 00 02 D3 00
+					15 00 00 40 00 00 02 D4 00
+					15 00 00 40 00 00 02 F5 00
+					15 00 00 40 00 00 02 F6 00
+					15 00 00 40 00 00 02 F7 00
+					39 00 00 00 00 00 04 FF 5A A5 00
+
+					//改善整机gamma偏低问题
+					39 00 00 40 00 00 04 FF 5A A5 15
+					15 00 00 40 00 00 02 D2 90
+					//SPR 边缘偏色优化更新
+					39 00 00 40 00 00 04 FF 5A A5 14
+					39 00 00 40 00 00 07 A4 00 04 00 04 60 80
+					//AOD DBV不写normal部分
+					39 00 00 40 00 00 04 FF 5A A5 06
+					15 00 00 40 00 00 02 B6 09
+					15 00 00 00 00 00 02 B7 03
+
+					//Sleep out don't reload OTP
+					39 00 00 40 00 00 04 FF 5A A5 08
+					15 00 00 00 00 00 02 C8 62
+					39 00 00 40 00 00 04 FF 5A A5 06
+					15 00 00 40 00 00 02 B6 09
+					15 00 00 40 00 00 02 B7 03
+
+					//hsync compensate
+					39 00 00 40 00 00 04 FF 5A A5 07
+					15 00 00 40 00 00 02 C4 01
+					15 00 00 40 00 00 02 C0 00
+					39 00 00 40 00 00 04 FF 5A A5 09
+					39 00 00 00 00 00 06 98 15 00 00 00 0C
+
+					//Hsync&Vsync output
+					39 00 00 40 00 00 04 FF 5A A5 02
+					39 00 00 40 00 00 05 AF 00 00 C0 01
+					39 00 00 40 00 00 03 88 08 C0
+					39 00 00 40 00 00 04 FF 5A A5 2D
+					39 00 00 40 00 00 06 E3 40 0B 00 00 D1
+					39 00 00 00 00 00 25 EF 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+
+					39 00 00 40 00 00 04 FF 5A A5 00
+					//IRC ON
+					15 00 00 40 00 00 02 B9 01
+					//144hz
+					15 00 00 40 00 00 02 D0 40
+					15 00 00 40 00 00 02 D1 05
+					15 00 00 40 00 00 02 71 01
+					//DBV setting
+					15 00 00 40 00 00 02 35 00
+					15 00 00 40 00 00 02 53 24
+					39 00 00 00 00 00 03 51 00 00
+
+					15 00 00 00 78 00 02 11 00
+					15 00 00 00 00 00 02 29 00
+				];
+
+
+				oplus,dsi-aod-off-command = [
+					39 00 00 40 00 00 04 FF 5A A5 00
+					39 00 00 40 00 00 01 38
+					39 00 00 40 00 00 02 D0 00
+					39 00 00 40 00 00 04 FF 5A A5 07
+					39 00 00 40 00 00 02 D4 90
+					39 00 00 00 00 00 04 FF 5A A5 00
+				];
+
+				oplus,dsi-on-command-state = "dsi_lp_mode";
+				oplus,dsi-aod-off-command-state = "dsi_ls_mode";
+
+				oplus,dsc-params-entries = <&dsc_params>;
+				/*oplus,phy-timcon {
+					hs-trail = <14>;
+					clk-trail = <15>;
+				};*/
+				oplus,dyn-fps {
+					switch_en = <1>;
+					dfps_cmd_num = <11>;
+					vact_timing_fps = <144>;
+					dyn_fps_data_rate;
+					oplus_dyn_fps_dfps_cmd_table0 = [00 04 FF 5A A5 20];
+					oplus_dyn_fps_dfps_cmd_table1 = [00 02 BC 32];
+					oplus_dyn_fps_dfps_cmd_table2 = [00 02 BD 54];
+					oplus_dyn_fps_dfps_cmd_table3 = [00 04 FF 5A A5 00];
+					oplus_dyn_fps_dfps_cmd_table4 = [00 02 D0 40];
+					oplus_dyn_fps_dfps_cmd_table5 = [00 04 FF 5A A5 53];
+					oplus_dyn_fps_dfps_cmd_table6 = [00 15 A5 00 00 00 00 00 20 20 20 20 20 00 00 00 00 00 00 00 00 00 00];
+					oplus_dyn_fps_dfps_cmd_table7 = [00 15 A6 20 20 20 20 20 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00];
+					oplus_dyn_fps_dfps_cmd_table8 = [00 15 A7 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00];
+					oplus_dyn_fps_dfps_cmd_table9 = [00 0B A8 00 00 00 00 00 F0 F0 F0 F0 F0];
+					oplus_dyn_fps_dfps_cmd_table10 = [00 04 FF 5A A5 00];
+
+					//apollo_limit_superior_us = <4900>;
+					//apollo_limit_inferior_us = <6750>;
+					//apollo_transfer_time_us = <6200>;
+				};
+				oplus,display-mode {
+					display-mode@0 {
+						hdisplay = <1272>;
+						vdisplay = <2772>;
+						fhd-hfp = <102>;
+						fhd-hsa = <12>;
+						fhd-hbp = <12>;
+						fhd-vfp = <80>;
+						fhd-vsa = <2>;
+						fhd-vbp = <26>;
+						hskew = <STANDARD_ADFR>;
+					};
+					display-mode@1 {
+						hdisplay = <1080>;
+						vdisplay = <2354>;
+						fhd-hfp = <102>;
+						fhd-hsa = <12>;
+						fhd-hbp = <12>;
+						fhd-vfp = <80>;
+						fhd-vsa = <2>;
+						fhd-vbp = <26>;
+						hskew = <STANDARD_ADFR>;
+					};
+				};
+			};
+
+			timing@sa_fhd_165 {
+				cell-index = <4>;
+				oplus,dsi-panel-framerate = <165>;
+				oplus,dsi-panel-pllclk = <687>;
+				#include "panel-ac390-p-7-a0034-dsi-vdo-common.dtsi"
+
+				oplus,dsi-on-command = [
+					39 00 00 40 00 00 04 FF 5A A5 07
+					15 00 00 40 00 00 02 A0 24
+					15 00 00 40 00 00 02 C2 08
+
+					//1bit esd check
+					39 00 00 40 00 00 04 FF 5A A5 06
+					15 00 00 40 00 00 02 C6 81
+					39 00 00 40 00 00 04 FF 5A A5 08
+					15 00 00 40 00 00 02 D7 00
+					39 00 00 40 00 00 04 FF 5A A5 08
+					39 00 00 40 00 00 09 ED FF FF FF FF FF FF FF FF
+					39 00 00 40 00 00 09 EE FF FF FF FF FF FF FF FF
+					//enable AP_ESD Check
+					39 00 00 40 00 00 04 FF 5A A5 08
+					15 00 00 40 00 00 02 D2 01
+					15 00 00 40 00 00 02 D3 00
+					15 00 00 40 00 00 02 D4 00
+					15 00 00 40 00 00 02 F5 00
+					15 00 00 40 00 00 02 F6 00
+					15 00 00 40 00 00 02 F7 00
+					39 00 00 00 00 00 04 FF 5A A5 00
+
+					//改善整机gamma偏低问题
+					39 00 00 40 00 00 04 FF 5A A5 15
+					15 00 00 40 00 00 02 D2 90
+					//SPR 边缘偏色优化更新
+					39 00 00 40 00 00 04 FF 5A A5 14
+					39 00 00 40 00 00 07 A4 00 04 00 04 60 80
+					//AOD DBV不写normal部分
+					39 00 00 40 00 00 04 FF 5A A5 06
+					15 00 00 40 00 00 02 B6 09
+					15 00 00 00 00 00 02 B7 03
+
+					//Sleep out don't reload OTP
+					39 00 00 40 00 00 04 FF 5A A5 08
+					15 00 00 00 00 00 02 C8 62
+					39 00 00 40 00 00 04 FF 5A A5 06
+					15 00 00 40 00 00 02 B6 09
+					15 00 00 40 00 00 02 B7 03
+
+					//hsync compensate
+					39 00 00 40 00 00 04 FF 5A A5 07
+					15 00 00 40 00 00 02 C4 01
+					15 00 00 40 00 00 02 C0 00
+					39 00 00 40 00 00 04 FF 5A A5 09
+					39 00 00 00 00 00 06 98 15 00 00 00 0C
+
+					//Hsync&Vsync output
+					39 00 00 40 00 00 04 FF 5A A5 02
+					39 00 00 40 00 00 05 AF 00 00 C0 01
+					39 00 00 40 00 00 03 88 08 C0
+					39 00 00 40 00 00 04 FF 5A A5 2D
+					39 00 00 40 00 00 06 E3 40 0B 00 00 D1
+					39 00 00 00 00 00 25 EF 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+
+					39 00 00 40 00 00 04 FF 5A A5 00
+					//IRC ON
+					15 00 00 40 00 00 02 B9 01
+					//165hz
+					15 00 00 40 00 00 02 D0 30
+					15 00 00 40 00 00 02 D1 05
+					15 00 00 40 00 00 02 71 01
+					//DBV setting
+					15 00 00 40 00 00 02 35 00
+					15 00 00 40 00 00 02 53 24
+					39 00 00 00 00 00 03 51 00 00
+
+					15 00 00 00 78 00 02 11 00
+					15 00 00 00 00 00 02 29 00
+				];
+
+				oplus,dsi-aod-off-command = [
+					39 00 00 40 00 00 04 FF 5A A5 00
+					39 00 00 40 00 00 01 38
+					39 00 00 40 00 00 02 D0 00
+					39 00 00 40 00 00 04 FF 5A A5 07
+					39 00 00 40 00 00 02 D4 90
+					39 00 00 00 00 00 04 FF 5A A5 00
+				];
+
+				oplus,dsi-on-command-state = "dsi_lp_mode";
+				oplus,dsi-aod-off-command-state = "dsi_ls_mode";
+
+				oplus,dsc-params-entries = <&dsc_params>;
+				/*oplus,phy-timcon {
+					hs-trail = <14>;
+					clk-trail = <15>;
+				};*/
+				oplus,dyn-fps {
+					switch_en = <1>;
+					dfps_cmd_num = <11>;
+					vact_timing_fps = <165>;
+					dyn_fps_data_rate;
+					oplus_dyn_fps_dfps_cmd_table0 = [00 04 FF 5A A5 20];
+					oplus_dyn_fps_dfps_cmd_table1 = [00 02 BC 32];
+					oplus_dyn_fps_dfps_cmd_table2 = [00 02 BD 54];
+					oplus_dyn_fps_dfps_cmd_table3= [00 04 FF 5A A5 00];
+					oplus_dyn_fps_dfps_cmd_table4 = [00 02 D0 30];
+					oplus_dyn_fps_dfps_cmd_table5 = [00 04 FF 5A A5 53];
+					oplus_dyn_fps_dfps_cmd_table6 = [00 15 A5 00 00 00 00 00 20 20 20 20 20 00 00 00 00 00 00 00 00 00 00];
+					oplus_dyn_fps_dfps_cmd_table7 = [00 15 A6 20 20 20 20 20 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00];
+					oplus_dyn_fps_dfps_cmd_table8 = [00 15 A7 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00];
+					oplus_dyn_fps_dfps_cmd_table9 = [00 0B A8 00 00 00 00 00 00 F0 F0 F0 F0];
+					oplus_dyn_fps_dfps_cmd_table10 = [00 04 FF 5A A5 00];
+
+					//apollo_limit_superior_us = <4900>;
+					//apollo_limit_inferior_us = <6750>;
+					//apollo_transfer_time_us = <6200>;
+				};
+				oplus,display-mode {
+					display-mode@0 {
+						hdisplay = <1272>;
+						vdisplay = <2772>;
+						fhd-hfp = <32>;
+						fhd-hsa = <12>;
+						fhd-hbp = <12>;
+						fhd-vfp = <80>;
+						fhd-vsa = <2>;
+						fhd-vbp = <26>;
+						hskew = <STANDARD_ADFR>;
+					};
+					display-mode@1 {
+						hdisplay = <1080>;
+						vdisplay = <2354>;
+						fhd-hfp = <32>;
+						fhd-hsa = <12>;
+						fhd-hbp = <12>;
+						fhd-vfp = <80>;
+						fhd-vsa = <2>;
+						fhd-vbp = <26>;
+						hskew = <STANDARD_ADFR>;
+					};
+				};
+			};
+			timing@sa_fhd_30 {
+				cell-index = <5>;
+				oplus,dsi-panel-framerate = <30>;
+				oplus,adfr-timing-type = <STANDARD_ADFR>;
+				oplus,dsi-panel-pllclk = <687>;
+				oplus,ofp_need_keep_apart_backlight;
+				oplus,vdo-per-frame-lp-enable = <1>;
+				#include "panel-ac390-p-7-a0034-dsi-vdo-common.dtsi"
+				oplus,dsi-on-command = [
+					39 00 00 40 00 00 04 FF 5A A5 07
+					15 00 00 40 00 00 02 A0 24
+					15 00 00 40 00 00 02 C2 08
+
+					//1bit esd check
+					39 00 00 40 00 00 04 FF 5A A5 06
+					15 00 00 40 00 00 02 C6 81
+					39 00 00 40 00 00 04 FF 5A A5 08
+					15 00 00 40 00 00 02 D7 00
+					39 00 00 40 00 00 04 FF 5A A5 08
+					39 00 00 40 00 00 09 ED FF FF FF FF FF FF FF FF
+					39 00 00 40 00 00 09 EE FF FF FF FF FF FF FF FF
+					//enable AP_ESD Check
+					39 00 00 40 00 00 04 FF 5A A5 08
+					15 00 00 40 00 00 02 D2 01
+					15 00 00 40 00 00 02 D3 00
+					15 00 00 40 00 00 02 D4 00
+					15 00 00 40 00 00 02 F5 00
+					15 00 00 40 00 00 02 F6 00
+					15 00 00 40 00 00 02 F7 00
+					39 00 00 00 00 00 04 FF 5A A5 00
+
+					//Sleep out don't reload OTP
+					39 00 00 40 00 00 04 FF 5A A5 08
+					15 00 00 00 00 00 02 C8 62
+
+					//FS Code
+					39 00 00 40 00 00 04 FF 5A A5 2A
+					15 00 00 40 00 00 02 A7 01
+					39 00 00 40 00 00 04 FF 5A A5 75
+					39 00 00 40 00 00 19 80 80 80 80 80 80 80 7A 80 80 80 7C 80 80 80 80 80 82 80 80 80 80 84 80 80
+					39 00 00 40 00 00 19 81 80 80 80 80 80 80 96 8C 80 80 86 80 80 80 80 80 7C 80 80 80 80 7C 80 80
+					39 00 00 40 00 00 19 82 80 80 80 80 80 80 7D 80 80 82 80 80 80 80 80 80 80 80 80 80 80 80 80 80
+					39 00 00 40 00 00 19 83 80 80 80 80 80 80 82 80 80 87 80 80 80 80 80 82 80 80 80 80 80 80 80 80
+					39 00 00 40 00 00 04 FF 5A A5 2A
+					15 00 00 40 00 00 02 A7 00
+					39 00 00 40 00 00 0C AE F0 00 00 00 00 00 00 00 00 00 00
+					39 00 00 40 00 00 15 AA 0D BB 04 7C 04 7C 03 5F 03 5E 02 40 02 3F 01 20 01 1F 00 00
+					39 00 00 40 00 00 05 AB 00 12 00 00
+					15 00 00 00 00 00 02 A9 C0
+					39 00 00 40 00 00 04 FF 5A A5 06
+					15 00 00 40 00 00 02 B6 09
+					15 00 00 40 00 00 02 B7 03
+
+					39 00 00 40 00 00 04 FF 5A A5 00
+					//IRC ON
+					15 00 00 40 00 00 02 B9 01
+					//120hz
+					15 00 00 40 00 00 02 D0 00
+					15 00 00 40 00 00 02 D1 00
+					15 00 00 40 00 00 02 71 01
+					//DBV setting
+					15 00 00 40 00 00 02 35 00
+					15 00 00 40 00 00 02 53 24
+					39 00 00 00 00 00 03 51 00 00
+
+					15 00 00 00 78 00 02 11 00
+					15 00 00 00 00 00 02 29 00
+				];
+				oplus,dsi-on-command-state = "dsi_lp_mode";
+				oplus,dsc-params-entries = <&dsc_params>;
+				oplus,dyn-fps {
+					switch_en = <1>;
+					vact_timing_fps = <30>;
+					dyn_fps_data_rate;
+				};
+				oplus,display-mode {
+					display-mode@0 {
+						hdisplay = <1272>;
+						vdisplay = <2772>;
+						fhd-hfp = <2126>;
+						fhd-hsa = <8>;
+						fhd-hbp = <22>;
+						fhd-vfp = <80>;
+						fhd-vsa = <2>;
+						fhd-vbp = <26>;
+						hskew = <STANDARD_ADFR>;
+					};
+					display-mode@1 {
+						hdisplay = <1080>;
+						vdisplay = <2354>;
+						fhd-hfp = <2126>;
+						fhd-hsa = <8>;
+						fhd-hbp = <22>;
+						fhd-vfp = <80>;
+						fhd-vsa = <2>;
+						fhd-vbp = <26>;
+						hskew = <STANDARD_ADFR>;
+					};
+				};
+			};
+		};
+	};
+};
+
+#define OPLUS_DSI_MODE_FLAGS (MIPI_DSI_MODE_VIDEO | MIPI_DSI_MODE_VIDEO_SYNC_PULSE | MIPI_DSI_MODE_LPM | MIPI_DSI_MODE_NO_EOT_PACKET)
+&panel_ac390_p_7_a0034_dsi_vdo {
+	oplus,dsi-display-panel@0 {
+		/* Dsi mode flags config */
+		oplus,dsi-mode-flags = <OPLUS_DSI_MODE_FLAGS>;
+		res-switch = <2>;
+		/* Hardware config */
+		oplus,panel-supply-entries = <&dsi_panel_pwr_supply_T0>;
+		oplus,panel-power-on-sequence = "1", "vddio", "5", "pmic_reset", "1", "vddr", "5", "vci", "1";
+		oplus,panel-power-off-sequence = "2", "vci", "5", "vddr", "0", "vddio", "5", "pmic_reset", "1";
+		reset-gpios = <&pio 90 0>;
+		oplus,panel-reset-sequence = <2 10>, <1 1>, <0 1>, <1 20>;
+		/* Panel config */
+		oplus,dsi-serial-number-enabled=<1>;
+		oplus,dsi-serial-number-index= <0>;
+		oplus,dsi-serial-number-reg= <0xF0>;
+		oplus,dsi-serial-number-read-count= <7>;
+		oplus,dsi-serial-number-year-offset= <9>;
+		oplus,backlight-check-disable;
+		/* demura */
+		//oplus,demura-dbv-enable;
+		//oplus,demura-dbv-cfg = <1153 4095>;
+
+		/* ESD */
+		oplus,cust-esd-check = <1>; //both check TE and reg
+		oplus,esd-check-enable = <1>;
+		oplus,esd_check_cmd = [
+			0A
+		];
+		oplus,esd_check_count = [
+			01
+		];
+		oplus,esd_check_value = [
+			9C
+		];
+		oplus,esd_check_mask = [
+			FF
+		];
+		/* OFP config */
+		oplus,ofp-fp-type = <0xA40>;
+		oplus,ofp-longrui-aod-config = <0x04>;
+		/* ext_params */
+		oplus,panel-type = <0>;
+		oplus,keep_ulps = <1>;
+		oplus,lane-swap-en = <0>;
+		oplus,lane-swap = <
+			MIPITX_PHY_LANE_0 MIPITX_PHY_LANE_1 MIPITX_PHY_LANE_3 MIPITX_PHY_LANE_2 MIPITX_PHY_LANE_CK MIPITX_PHY_LANE_RX
+			MIPITX_PHY_LANE_0 MIPITX_PHY_LANE_1 MIPITX_PHY_LANE_3 MIPITX_PHY_LANE_2 MIPITX_PHY_LANE_CK MIPITX_PHY_LANE_RX
+		>;
+		oplus,lcm-color-mode = <MTK_DRM_COLOR_MODE_DISPLAY_P3>;
+		oplus,output-mode = <MTK_PANEL_DSC_SINGLE_PORT>;
+		oplus,panel-bpp = <10>;
+		oplus,physical-width-um = <71868>;
+		oplus,physical-height-um = <156618>;
+		oplus,panel-support-144hz;
+		oplus,disable-scaling-mode-mapping;
+		oplus,enhance-mipi-strength = <4>;
+
+		/* vdo mode setting */
+		oplus,change_fps_by_vfp_send_cmd = <1>;
+		oplus,vdo-per-frame-lp-enable = <1>;
+	};
+};

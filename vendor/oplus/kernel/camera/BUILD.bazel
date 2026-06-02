@@ -1,0 +1,17 @@
+package(
+    default_visibility = [
+        "//visibility:public",
+    ],
+)
+
+load(":oplus_local_modules.bzl", "define_oplus_local_modules")
+
+filegroup(
+    name = "oplus_camera_public_headers",
+    srcs = glob([
+        "cam_monitor/*.h",
+        "cam_monitor/monitor_notify.c",
+    ]),
+)
+
+define_oplus_local_modules()

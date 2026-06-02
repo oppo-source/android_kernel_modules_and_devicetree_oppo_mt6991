@@ -1,0 +1,588 @@
+// SPDX-License-Identifier: GPL-2.0
+// Copyright (c) 2019 MediaTek Inc.
+
+#include <linux/delay.h>
+#include <linux/i2c.h>
+#include <linux/module.h>
+#include <linux/regulator/consumer.h>
+#include <linux/pinctrl/consumer.h>
+#include <linux/pm_runtime.h>
+#include <media/v4l2-ctrls.h>
+#include <media/v4l2-device.h>
+#include <media/v4l2-subdev.h>
+
+#define DRIVER_NAME "dw9827c_main_25011"
+
+#define LOG_INF(format, args...)                                               \
+	pr_info(DRIVER_NAME " [%s] " format, __func__, ##args)
+
+#define DW9827C_NAME				"dw9827c_main_25011"
+#define DW9827C_MAX_FOCUS_POS			1023
+#define DW9827C_ORIGIN_FOCUS_POS		0
+/*
+ * This sets the minimum granularity for the focus positions.
+ * A value of 1 gives maximum accuracy for a desired focus position
+ */
+#define DW9827C_FOCUS_STEPS		        	1
+#define DW9827C_SET_POSITION_ADDR	    	0x00
+#define DW9827C_GET_HAL_POSITION_ADDR		0x84
+
+#define DW9827C_CMD_DELAY			0xff
+#define DW9827C_CTRL_DELAY_US			3000
+/*
+ * This acts as the minimum granularity of lens movement.
+ * Keep this value power of 2, so the control steps can be
+ * uniformly adjusted for gradual lens movement, with desired
+ * number of control steps.
+ */
+#define DW9827C_MOVE_STEPS			100
+#define DW9827C_MOVE_DELAY_US			1000
+#define DW9827C_INIT_DELAY_US			3000
+
+#define DW9827C_MOVE_INIT_POS			0
+
+#ifndef OPLUS_FEATURE_CAMERA_COMMON
+#define OPLUS_FEATURE_CAMERA_COMMON
+#endif /* OPLUS_FEATURE_CAMERA_COMMON */
+
+/* dw9827c_main_25011 device structure */
+struct dw9827c_main_25011_device {
+	struct v4l2_ctrl_handler ctrls;
+	struct v4l2_subdev sd;
+	struct v4l2_ctrl *focus;
+	struct regulator *vin;
+	struct regulator *vdd;
+	struct pinctrl *vcamaf_pinctrl;
+	struct pinctrl_state *vcamaf_on;
+	struct pinctrl_state *vcamaf_off;
+	/* active or standby mode */
+	bool active;
+};
+
+static int dw9827c_main_25011_set_position_by_step(struct dw9827c_main_25011_device *dw9827c_main_25011, u16 position);
+static int dw9827c_main_25011_set_position(struct dw9827c_main_25011_device *dw9827c_main_25011, u16 val);
+
+static unsigned int dw9827c_move_step = 50;
+static unsigned int dw9827c_move_step_delay = DW9827C_MOVE_DELAY_US;
+static u16 current_pos = 0;
+
+struct regval_list {
+	unsigned char reg_num;
+	unsigned char value;
+	unsigned char delay;
+};
+
+static struct regval_list dw9827c_main_25011_init_regs[] = {
+	{0x02, 0x40, 3},
+	{0x04, 0x01, 3},
+//	{0x00, ((DW9827C_MOVE_INIT_POS << 6) >> 8) & 0xff, 0},
+//	{0x01, (DW9827C_MOVE_INIT_POS << 6) & 0xff       , 0},
+	{0x02, 0x00, 3},
+};
+
+#define VCM_IOC_POWER_ON         _IO('V', BASE_VIDIOC_PRIVATE + 4)
+#define VCM_IOC_POWER_OFF        _IO('V', BASE_VIDIOC_PRIVATE + 5)
+
+static inline struct dw9827c_main_25011_device *to_dw9827c_main_25011_vcm(struct v4l2_ctrl *ctrl)
+{
+	return container_of(ctrl->handler, struct dw9827c_main_25011_device, ctrls);
+}
+
+static inline struct dw9827c_main_25011_device *sd_to_dw9827c_main_25011_vcm(struct v4l2_subdev *subdev)
+{
+	return container_of(subdev, struct dw9827c_main_25011_device, sd);
+}
+
+static int dw9827c_main_25011_set_position_by_step(struct dw9827c_main_25011_device *dw9827c_main_25011, u16 position)
+{
+	int ret, val;
+	int diff_dac = 0;
+	int nStep_count = 0;
+	int i = 0;
+	u16 move_step = dw9827c_move_step;
+	u16 move_step_delay = dw9827c_move_step_delay;
+
+	if (!dw9827c_main_25011->active) {
+		return 0;
+	}
+
+	if(move_step == 0) {
+		move_step = 50;
+		pr_info("%s error step  set to 50\n", __func__);
+	}
+
+	diff_dac = position - current_pos;
+	nStep_count = (diff_dac < 0 ? (diff_dac*(-1)) : diff_dac) /
+		move_step;
+
+	//val = dw9827c_main_25011->focus->val;
+	val = current_pos;
+
+	pr_info("%s  dw9827c_main_25011->focus->val(%d) current_pos(%d)\n", __func__,  dw9827c_main_25011->focus->val, current_pos);
+	pr_info("%s move_step(%d) move_step_delay(%d) diff_dac(%d) nStep_count(%d)\n", __func__, move_step, move_step_delay, diff_dac, nStep_count);
+
+	for (i = 0; i < nStep_count; ++i) {
+		val += (diff_dac < 0 ? (move_step*(-1)) : move_step);
+		ret = dw9827c_main_25011_set_position(dw9827c_main_25011, val);
+		if (ret) {
+			pr_info("%s I2C failure: %d", __func__, ret);
+			return ret;
+		}
+
+		if (move_step_delay) {
+			usleep_range(move_step_delay, move_step_delay);
+		}
+	}
+
+	if(current_pos != position) {
+		ret = dw9827c_main_25011_set_position(dw9827c_main_25011, position);
+		if (ret) {
+			pr_info("%s I2C failure: %d", __func__, ret);
+			return ret;
+		}
+	}
+
+    return 0;
+}
+
+static int dw9827c_main_25011_set_position(struct dw9827c_main_25011_device *dw9827c_main_25011, u16 val)
+{
+	struct i2c_client *client = v4l2_get_subdevdata(&dw9827c_main_25011->sd);
+	int retry = 3;
+	int ret;
+	if (!dw9827c_main_25011->active) {
+		pr_info("dw9827c_main_25011 set position is %d, active is %d", val, dw9827c_main_25011->active);
+		return 0;
+	}
+	LOG_INF("dw9827c_main_25011 Set postition:%u.", val);
+	while (--retry > 0) {
+        ret = i2c_smbus_write_word_data(client, DW9827C_SET_POSITION_ADDR,
+                                        swab16(val << 6));
+		if (ret < 0) {
+			usleep_range(DW9827C_MOVE_DELAY_US,
+				     DW9827C_MOVE_DELAY_US + 1000);
+			#ifdef OPLUS_FEATURE_CAMERA_COMMON
+			LOG_INF("dw9827c_main_25011 Set postition:%u fail.", val);
+			#endif /*OPLUS_FEATURE_CAMERA_COMMON*/
+		} else {
+			current_pos = val;
+			break;
+		}
+	}
+
+	return ret;
+}
+
+static int dw9827c_main_25011_release(struct dw9827c_main_25011_device *dw9827c_main_25011)
+{
+//	int ret;
+	struct i2c_client *client = v4l2_get_subdevdata(&dw9827c_main_25011->sd);
+
+	if (!dw9827c_main_25011->active) {
+		return 0;
+	}
+
+	pr_info("%s +\n", __func__);
+
+//	ret = dw9827c_main_25011_set_position_by_step(dw9827c_main_25011, DW9827C_MOVE_INIT_POS);
+
+	i2c_smbus_write_byte_data(client, 0x02, 0x20);
+	dw9827c_main_25011->active = false;
+
+	usleep_range(5000, 5000 + 1000);
+
+	pr_info("%s -\n", __func__);
+
+	return 0;
+}
+
+
+static int dw9827c_main_25011_write_array(struct dw9827c_main_25011_device *dw9827c_main_25011,
+			      struct regval_list *vals, u32 len)
+{
+	unsigned int i;
+	int ret;
+	struct i2c_client *client = v4l2_get_subdevdata(&dw9827c_main_25011->sd);
+
+	for (i = 0; i < len; i++) {
+		LOG_INF("Init write [0x%x, 0x%x, %d]", vals[i].reg_num, vals[i].value, vals[i].delay);
+		ret = i2c_smbus_write_byte_data(client, vals[i].reg_num, vals[i].value);
+		if (ret < 0)
+			return ret;
+		if(vals[i].delay) {
+			usleep_range(vals[i].delay * 1000, vals[i].delay * 1000 + 1000);
+		}
+	}
+
+	return 0;
+}
+
+static u16 dw9827c_main_25011_get_hall_value(struct dw9827c_main_25011_device *dw9827c_main_25011)
+{
+	u16 temp = 0;
+	struct i2c_client *client = v4l2_get_subdevdata(&dw9827c_main_25011->sd);
+
+	temp = i2c_smbus_read_word_data(client, DW9827C_GET_HAL_POSITION_ADDR);
+
+	pr_info("%s value(0x%x)  convert(0x%x, %d)", __func__, temp, temp >> 6, temp >> 6);
+
+	return temp >> 6;
+}
+
+static int dw9827c_main_25011_init(struct dw9827c_main_25011_device *dw9827c_main_25011)
+{
+	int ret = 0;
+	u16 hall_value = 0;
+
+	struct i2c_client *client = v4l2_get_subdevdata(&dw9827c_main_25011->sd);
+
+	if (dw9827c_main_25011->active) {
+		return 0;
+	}
+	pr_info("%s +\n", __func__);
+
+	ret = dw9827c_main_25011_write_array(dw9827c_main_25011, dw9827c_main_25011_init_regs, 1);
+
+	hall_value = dw9827c_main_25011_get_hall_value(dw9827c_main_25011);
+	current_pos = hall_value;
+    ret = i2c_smbus_write_word_data(client, DW9827C_SET_POSITION_ADDR,
+                                        swab16(hall_value << 6));
+
+	ret = dw9827c_main_25011_write_array(dw9827c_main_25011, dw9827c_main_25011_init_regs + 1,
+                    ARRAY_SIZE(dw9827c_main_25011_init_regs) - 1);
+
+	dw9827c_main_25011->active = true;
+	LOG_INF("set position: %d", dw9827c_main_25011->focus->val);
+if(0) {
+	ret = dw9827c_main_25011_set_position_by_step(dw9827c_main_25011, dw9827c_main_25011->focus->val);
+}
+	ret = dw9827c_main_25011_set_position(dw9827c_main_25011, dw9827c_main_25011->focus->val);
+	pr_info("%s -\n", __func__);
+
+	return 0;
+}
+
+/* Power handling */
+static int dw9827c_main_25011_power_off(struct dw9827c_main_25011_device *dw9827c_main_25011)
+{
+	int ret;
+
+	LOG_INF("+\n");
+
+	ret = dw9827c_main_25011_release(dw9827c_main_25011);
+	if (ret)
+		LOG_INF("dw9827c_main_25011 release failed!\n");
+
+	ret = regulator_disable(dw9827c_main_25011->vin);
+	if (ret)
+		return ret;
+
+	ret = regulator_disable(dw9827c_main_25011->vdd);
+	if (ret)
+		return ret;
+
+	if (dw9827c_main_25011->vcamaf_pinctrl && dw9827c_main_25011->vcamaf_off)
+		ret = pinctrl_select_state(dw9827c_main_25011->vcamaf_pinctrl,
+					dw9827c_main_25011->vcamaf_off);
+
+	LOG_INF("-\n");
+
+	return ret;
+}
+
+static int dw9827c_main_25011_power_on(struct dw9827c_main_25011_device *dw9827c_main_25011)
+{
+	int ret;
+
+	LOG_INF("+\n");
+
+	ret = regulator_set_voltage(dw9827c_main_25011->vin, 2800000, 2800000);
+	if (ret < 0)
+		return ret;
+
+	ret = regulator_enable(dw9827c_main_25011->vin);
+	if (ret < 0)
+		return ret;
+
+	ret = regulator_enable(dw9827c_main_25011->vdd);
+	if (ret < 0)
+		return ret;
+
+	if (dw9827c_main_25011->vcamaf_pinctrl && dw9827c_main_25011->vcamaf_on)
+		ret = pinctrl_select_state(dw9827c_main_25011->vcamaf_pinctrl,
+					dw9827c_main_25011->vcamaf_on);
+
+	if (ret < 0)
+		return ret;
+
+	/*
+	 * TODO(b/139784289): Confirm hardware requirements and adjust/remove
+	 * the delay.
+	 */
+	usleep_range(DW9827C_CTRL_DELAY_US, DW9827C_CTRL_DELAY_US + 100);
+
+	ret = dw9827c_main_25011_init(dw9827c_main_25011);
+	if (ret < 0)
+		goto fail;
+
+	LOG_INF("-\n");
+
+	return 0;
+
+fail:
+	regulator_disable(dw9827c_main_25011->vin);
+	regulator_disable(dw9827c_main_25011->vdd);
+	if (dw9827c_main_25011->vcamaf_pinctrl && dw9827c_main_25011->vcamaf_off) {
+		pinctrl_select_state(dw9827c_main_25011->vcamaf_pinctrl,
+				dw9827c_main_25011->vcamaf_off);
+	}
+
+	return ret;
+}
+
+static int dw9827c_main_25011_set_ctrl(struct v4l2_ctrl *ctrl)
+{
+	int ret = 0;
+	struct dw9827c_main_25011_device *dw9827c_main_25011 = to_dw9827c_main_25011_vcm(ctrl);
+
+	if (ctrl->id == V4L2_CID_FOCUS_ABSOLUTE) {
+		LOG_INF("pos(%d)\n", ctrl->val);
+		ret = dw9827c_main_25011_set_position(dw9827c_main_25011, ctrl->val);
+		if (ret) {
+			LOG_INF("%s I2C failure: %d",
+				__func__, ret);
+			return ret;
+		}
+	}
+	return 0;
+}
+
+static const struct v4l2_ctrl_ops dw9827c_main_25011_vcm_ctrl_ops = {
+	.s_ctrl = dw9827c_main_25011_set_ctrl,
+};
+
+static int dw9827c_main_25011_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
+{
+	int ret;
+	struct dw9827c_main_25011_device *dw9827c_main_25011 = sd_to_dw9827c_main_25011_vcm(sd);
+
+	ret = dw9827c_main_25011_power_on(dw9827c_main_25011);
+	if (ret < 0) {
+		LOG_INF("power on fail, ret = %d\n", ret);
+		return ret;
+	}
+
+	return 0;
+}
+
+static int dw9827c_main_25011_close(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
+{
+	struct dw9827c_main_25011_device *dw9827c_main_25011 = sd_to_dw9827c_main_25011_vcm(sd);
+
+	dw9827c_main_25011_power_off(dw9827c_main_25011);
+
+	return 0;
+}
+
+static int dw9827c_main_25011_vcm_resume(struct dw9827c_main_25011_device *dw9827c_main_25011)
+{
+    int ret = 0;
+    ret = dw9827c_main_25011_init(dw9827c_main_25011);
+    pr_info("%s exit stand by mode, active:%d\n", __func__, dw9827c_main_25011->active);
+    return ret;
+}
+
+static int dw9827c_main_25011_vcm_suspend(struct dw9827c_main_25011_device *dw9827c_main_25011)
+{
+    int ret = 0;
+    ret = dw9827c_main_25011_release(dw9827c_main_25011);
+    pr_info("%s entry stand by mode, active:%d\n", __func__, dw9827c_main_25011->active);
+    return ret;
+}
+
+static long dw9827c_main_25011_ops_core_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
+{
+	int ret = 0;
+	struct dw9827c_main_25011_device *dw9827c_main_25011 = sd_to_dw9827c_main_25011_vcm(sd);
+	pr_info("%s +\n", __func__);
+
+	switch (cmd) {
+	case VCM_IOC_POWER_ON:
+        ret = dw9827c_main_25011_vcm_resume(dw9827c_main_25011);
+        pr_info("%s VCM_IOC_POWER_ON, cmd:%d, ret: %d\n", __func__, cmd, ret);
+        break;
+    case VCM_IOC_POWER_OFF:
+        ret = dw9827c_main_25011_vcm_suspend(dw9827c_main_25011);
+        pr_info("%s VCM_IOC_POWER_OFF, cmd:%d, ret:%d\n", __func__, cmd, ret);
+        break;
+	break;
+	default:
+		ret = -ENOIOCTLCMD;
+		break;
+	}
+	pr_info("%s -\n", __func__);
+	return ret;
+}
+
+static const struct v4l2_subdev_internal_ops dw9827c_main_25011_int_ops = {
+	.open = dw9827c_main_25011_open,
+	.close = dw9827c_main_25011_close,
+};
+
+static struct v4l2_subdev_core_ops dw9827c_main_25011_ops_core = {
+	.ioctl = dw9827c_main_25011_ops_core_ioctl,
+};
+
+static const struct v4l2_subdev_ops dw9827c_main_25011_ops = {
+	.core = &dw9827c_main_25011_ops_core,
+};
+
+static void dw9827c_main_25011_subdev_cleanup(struct dw9827c_main_25011_device *dw9827c_main_25011)
+{
+	v4l2_async_unregister_subdev(&dw9827c_main_25011->sd);
+	v4l2_ctrl_handler_free(&dw9827c_main_25011->ctrls);
+#if IS_ENABLED(CONFIG_MEDIA_CONTROLLER)
+	media_entity_cleanup(&dw9827c_main_25011->sd.entity);
+#endif
+}
+
+static int dw9827c_main_25011_init_controls(struct dw9827c_main_25011_device *dw9827c_main_25011)
+{
+	struct v4l2_ctrl_handler *hdl = &dw9827c_main_25011->ctrls;
+	const struct v4l2_ctrl_ops *ops = &dw9827c_main_25011_vcm_ctrl_ops;
+
+	v4l2_ctrl_handler_init(hdl, 1);
+
+	dw9827c_main_25011->focus = v4l2_ctrl_new_std(hdl, ops, V4L2_CID_FOCUS_ABSOLUTE,
+			  0, DW9827C_MAX_FOCUS_POS, DW9827C_FOCUS_STEPS, 0);
+
+	if (hdl->error)
+		return hdl->error;
+
+	dw9827c_main_25011->sd.ctrl_handler = hdl;
+
+	return 0;
+}
+
+static int dw9827c_main_25011_probe(struct i2c_client *client)
+{
+	struct device *dev = &client->dev;
+	struct dw9827c_main_25011_device *dw9827c_main_25011;
+	int ret;
+
+	LOG_INF("+\n");
+
+	dw9827c_main_25011 = devm_kzalloc(dev, sizeof(*dw9827c_main_25011), GFP_KERNEL);
+	if (!dw9827c_main_25011)
+		return -ENOMEM;
+
+	dw9827c_main_25011->vin = devm_regulator_get(dev, "vin");
+	if (IS_ERR(dw9827c_main_25011->vin)) {
+		ret = PTR_ERR(dw9827c_main_25011->vin);
+		if (ret != -EPROBE_DEFER)
+			LOG_INF("cannot get vin regulator\n");
+		return ret;
+	}
+
+	dw9827c_main_25011->vdd = devm_regulator_get(dev, "vdd");
+	if (IS_ERR(dw9827c_main_25011->vdd)) {
+		ret = PTR_ERR(dw9827c_main_25011->vdd);
+		if (ret != -EPROBE_DEFER)
+			LOG_INF("cannot get vdd regulator\n");
+		return ret;
+	}
+
+	dw9827c_main_25011->vcamaf_pinctrl = devm_pinctrl_get(dev);
+	if (IS_ERR(dw9827c_main_25011->vcamaf_pinctrl)) {
+		ret = PTR_ERR(dw9827c_main_25011->vcamaf_pinctrl);
+		dw9827c_main_25011->vcamaf_pinctrl = NULL;
+		LOG_INF("cannot get pinctrl\n");
+	} else {
+		dw9827c_main_25011->vcamaf_on = pinctrl_lookup_state(
+			dw9827c_main_25011->vcamaf_pinctrl, "vcamaf_on");
+
+		if (IS_ERR(dw9827c_main_25011->vcamaf_on)) {
+			ret = PTR_ERR(dw9827c_main_25011->vcamaf_on);
+			dw9827c_main_25011->vcamaf_on = NULL;
+			LOG_INF("cannot get vcamaf_on pinctrl\n");
+		}
+
+		dw9827c_main_25011->vcamaf_off = pinctrl_lookup_state(
+			dw9827c_main_25011->vcamaf_pinctrl, "vcamaf_off");
+
+		if (IS_ERR(dw9827c_main_25011->vcamaf_off)) {
+			ret = PTR_ERR(dw9827c_main_25011->vcamaf_off);
+			dw9827c_main_25011->vcamaf_off = NULL;
+			LOG_INF("cannot get vcamaf_off pinctrl\n");
+		}
+	}
+
+	v4l2_i2c_subdev_init(&dw9827c_main_25011->sd, client, &dw9827c_main_25011_ops);
+	dw9827c_main_25011->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+	dw9827c_main_25011->sd.internal_ops = &dw9827c_main_25011_int_ops;
+
+	ret = dw9827c_main_25011_init_controls(dw9827c_main_25011);
+	if (ret)
+		goto err_cleanup;
+
+#if IS_ENABLED(CONFIG_MEDIA_CONTROLLER)
+	ret = media_entity_pads_init(&dw9827c_main_25011->sd.entity, 0, NULL);
+	if (ret < 0)
+		goto err_cleanup;
+
+	dw9827c_main_25011->sd.entity.function = MEDIA_ENT_F_LENS;
+#endif
+
+	ret = v4l2_async_register_subdev(&dw9827c_main_25011->sd);
+	if (ret < 0)
+		goto err_cleanup;
+
+	LOG_INF("-\n");
+
+	return 0;
+
+err_cleanup:
+	dw9827c_main_25011_subdev_cleanup(dw9827c_main_25011);
+	return ret;
+}
+
+static void dw9827c_main_25011_remove(struct i2c_client *client)
+{
+	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+	struct dw9827c_main_25011_device *dw9827c_main_25011 = sd_to_dw9827c_main_25011_vcm(sd);
+
+	LOG_INF("+\n");
+
+	dw9827c_main_25011_subdev_cleanup(dw9827c_main_25011);
+
+	LOG_INF("-\n");
+	//return 0;
+}
+
+static const struct i2c_device_id dw9827c_main_25011_id_table[] = {
+	{ DW9827C_NAME, 0 },
+	{ },
+};
+MODULE_DEVICE_TABLE(i2c, dw9827c_main_25011_id_table);
+
+static const struct of_device_id dw9827c_main_25011_of_table[] = {
+	{ .compatible = "oplus,dw9827c_main_25011" },
+	{ },
+};
+MODULE_DEVICE_TABLE(of, dw9827c_main_25011_of_table);
+
+static struct i2c_driver dw9827c_main_25011_i2c_driver = {
+	.driver = {
+		.name = DW9827C_NAME,
+		.of_match_table = dw9827c_main_25011_of_table,
+	},
+	.probe  = dw9827c_main_25011_probe,
+	.remove = dw9827c_main_25011_remove,
+	.id_table = dw9827c_main_25011_id_table,
+};
+
+module_i2c_driver(dw9827c_main_25011_i2c_driver);
+
+MODULE_AUTHOR("Po-Hao Huang <Po-Hao.Huang@mediatek.com>");
+MODULE_DESCRIPTION("DW9827C VCM driver");
+MODULE_LICENSE("GPL v2");

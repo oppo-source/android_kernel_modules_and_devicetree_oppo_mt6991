@@ -1,0 +1,153 @@
+				oplus,dsi-on-post-command = [
+				];
+				oplus,dsi-off-command = [
+					39 00 00 00 14 00 02 28 00
+					39 00 00 00 BE 00 02 10 00
+				];
+				oplus,dsi-set-backlight-command = [
+					39 00 00 00 00 00 03 51 00 00
+				];
+				oplus,dsi-panel-demura-dbv-mode0-command = [
+
+				];
+				oplus,dsi-panel-demura-dbv-mode1-command = [
+
+				];
+				oplus,dsi-aod-on-command = [
+					39 00 00 40 00 00 04 FF 5A A5 00
+					39 00 00 40 00 00 01 39
+					39 00 00 40 00 00 02 D1 00
+					39 00 00 40 00 00 04 FF 5A A5 07
+					39 00 00 40 00 00 02 D4 93
+					39 00 00 40 00 00 04 FF 5A A5 00
+					39 00 00 40 00 00 03 FD 00 80
+					39 00 00 40 00 00 03 51 03 D4
+					39 00 00 00 00 00 03 FD 00 00
+				];
+
+				oplus,dsi-aod-high-mode-command = [
+					39 00 00 40 00 00 04 FF 5A A5 00
+					39 00 00 40 00 00 03 FD 00 80
+					39 00 00 40 00 00 03 51 03 D4
+					39 00 00 00 00 00 03 FD 00 00
+				];
+				oplus,dsi-aod-low-mode-command = [
+					39 00 00 40 00 00 04 FF 5A A5 00
+					39 00 00 40 00 00 03 FD 00 80
+					39 00 00 40 00 00 03 51 01 B3
+					39 00 00 00 00 00 03 FD 00 00
+				];
+
+				oplus,dsi-set-seed-natural-command = [
+					39 00 00 40 00 00 04 FF 5A A5 76
+					15 00 00 40 00 00 02 80 A9
+					15 00 00 40 00 00 02 81 00 //dimming off
+ 					39 00 00 40 00 00 03 85 08 10
+					15 00 00 40 00 00 02 9D 01
+					39 00 00 40 00 00 04 FF 5A A5 00
+					15 00 00 00 00 00 02 B4 00
+
+				];
+				oplus,dsi-set-seed-vivid-command = [
+					39 00 00 40 00 00 04 FF 5A A5 76
+					15 00 00 40 00 00 02 80 A9
+					15 00 00 40 00 00 02 81 00 //dimming off
+					39 00 00 40 00 00 03 85 08 10
+					15 00 00 40 00 00 02 9D 01
+					39 00 00 40 00 00 04 FF 5A A5 00
+					15 00 00 00 00 00 02 B4 10
+
+				];
+				oplus,dsi-set-seed-expert-command = [
+					39 00 00 40 00 00 04 FF 5A A5 76
+					15 00 00 40 00 00 02 80 89
+					15 00 00 40 00 00 02 81 00 //dimming off
+					39 00 00 00 00 00 04 FF 08 38 00
+
+				];
+				oplus,dsi-set-uir-on-seed-vivid-command = [
+					/* Loading On 130%~200%*/
+					39 00 00 40 00 00 04 FF 5A A5 76
+					15 00 00 40 00 00 02 80 A9 //peak enable
+					15 00 00 40 00 00 02 81 11 //11 by step
+					15 00 00 40 00 00 02 88 0B
+					39 00 00 40 00 00 04 A8 00 12 0E //12 panel nit down dimming step is 18,0E panel nit up dimming step is 14
+					39 00 00 40 00 00 03 85 08 00 //APL mode
+					15 00 00 40 00 00 02 9D 1A //Min_APL_20%
+					39 00 00 40 00 00 04 FF 5A A5 00
+					15 00 00 00 00 00 02 B4 20
+				];
+				oplus,dsi-set-uir-on-seed-expert-command = [
+					/* Loading On 100%~200%*/
+					39 00 00 40 00 00 04 FF 5A A5 76
+					15 00 00 40 00 00 02 80 A9 //peak enable
+					15 00 00 40 00 00 02 81 11 //11 by step
+					15 00 00 40 00 00 02 88 0B
+					39 00 00 40 00 00 04 A8 00 12 0E //12 panel nit down dimming step is 18,0E panel nit up dimming step is 14
+					39 00 00 40 00 00 03 85 08 00 //APL mode
+					15 00 00 40 00 00 02 9D 1A //Min_APL_20%
+					39 00 00 40 00 00 04 FF 5A A5 00
+					15 00 00 00 00 00 02 B4 20
+				];
+				oplus,dsi-set-uir-on-seed-natural-command = [
+					/* Loading On 110%~200%*/
+					39 00 00 40 00 00 04 FF 5A A5 76
+					15 00 00 40 00 00 02 80 A9 //peak enable
+					15 00 00 40 00 00 02 81 11 //11 by step
+					15 00 00 40 00 00 02 88 0B
+					39 00 00 40 00 00 04 A8 00 12 0E //12 panel nit down dimming step is 18,0E panel nit up dimming step is 14
+					39 00 00 40 00 00 03 85 08 00 //APL mode
+					15 00 00 40 00 00 02 9D 1A //Min_APL_20%
+					39 00 00 40 00 00 04 FF 5A A5 00
+					15 00 00 00 00 00 02 B4 20
+				];
+				oplus,dsi-set-uir-off-seed-vivid-command = [
+					/* Loading On 130%*/
+					39 00 00 40 00 00 04 FF 5A A5 76
+					15 00 00 40 00 00 02 80 A9
+					15 00 00 40 00 00 02 81 11 //11 by step
+					15 00 00 40 00 00 02 88 0B
+					39 00 00 40 00 00 04 A8 00 12 0E //12 panel nit down dimming step is 18,0E panel nit up dimming step is 14
+					39 00 00 40 00 00 03 85 08 10
+					15 00 00 40 00 00 02 9D 01
+					39 00 00 40 00 00 04 FF 5A A5 00
+					15 00 00 00 00 00 02 B4 10
+				];
+				oplus,dsi-set-uir-off-seed-expert-command = [
+					/* Loading On 100%*/
+					39 00 00 40 00 00 04 FF 5A A5 76
+					15 00 00 40 00 00 02 81 11 //11 by step
+					15 00 00 40 00 00 02 88 0B
+					39 00 00 40 00 00 04 A8 00 12 0E //12 panel nit down dimming step is 18,0E panel nit up dimming step is 14
+					15 00 00 40 00 00 02 80 89
+					39 00 00 00 00 00 04 FF 08 38 00
+				];
+				oplus,dsi-set-uir-off-seed-natural-command = [
+					/* Loading On 110%*/
+					39 00 00 40 00 00 04 FF 5A A5 76
+					15 00 00 40 00 00 02 80 A9
+					15 00 00 40 00 00 02 81 11 //11 by step
+					15 00 00 40 00 00 02 88 0B
+					39 00 00 40 00 00 04 A8 00 12 0E //12 panel nit down dimming step is 18,0E panel nit up dimming step is 14
+ 					39 00 00 40 00 00 03 85 08 10
+					15 00 00 40 00 00 02 9D 01
+					39 00 00 40 00 00 04 FF 5A A5 00
+					15 00 00 00 00 00 02 B4 00
+				];
+				oplus,dsi-on-post-command-state = "dsi_lp_mode";
+				oplus,dsi-off-command-state = "dsi_lp_mode";
+				oplus,dsi-set-backlight-command-state = "dsi_ls_mode";
+				oplus,dsi-aod-on-command-state = "dsi_ls_mode";
+				oplus,dsi-panel-demura-dbv-mode0-command-state = "dsi_ls_mode";
+				oplus,dsi-panel-demura-dbv-mode1-command-state = "dsi_ls_mode";
+				oplus,dsi-aod-high-mode-command-state = "dsi_ls_mode";
+				oplus,dsi-aod-low-mode-command-state = "dsi_ls_mode";
+				oplus,dsi-set-seed-natural-command-state = "dsi_ls_mode";
+				oplus,dsi-set-seed-vivid-command-state = "dsi_ls_mode";
+				oplus,dsi-set-seed-expert-command-state = "dsi_ls_mode";
+				oplus,dsi-set-uir-on-seed-vivid-command-state = "dsi_ls_mode";
+				oplus,dsi-set-uir-on-seed-expert-command-state = "dsi_ls_mode";
+				oplus,dsi-set-uir-on-seed-natural-command-state = "dsi_ls_mode";
+				oplus,dsi-set-uir-off-seed-vivid-command-state = "dsi_ls_mode";
+				oplus,dsi-set-uir-off-seed-expert-command-state = "dsi_ls_mode";
+				oplus,dsi-set-uir-off-seed-natural-command-state = "dsi_ls_mode";

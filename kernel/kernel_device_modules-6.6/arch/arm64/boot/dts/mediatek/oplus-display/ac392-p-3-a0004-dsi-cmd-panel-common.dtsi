@@ -1,0 +1,118 @@
+				oplus,dsi-on-post-command = [
+				];
+				oplus,dsi-off-command = [
+					39 00 00 00 14 00 02 28 00
+					39 00 00 00 78 00 02 10 00
+				];
+				oplus,dsi-set-backlight-command = [
+					39 00 00 00 00 00 03 51 00 00
+				];
+				oplus,dsi-panel-demura-dbv-mode0-command = [
+					/* DBV <= 1153 */
+				];
+				oplus,dsi-panel-demura-dbv-mode1-command = [
+					/* 1153 < DBV <= 4095 */
+				];
+				oplus,dsi-aod-on-command = [
+					39 00 00 40 00 00 04 FF 08 38 00
+					15 00 00 40 00 00 01 39
+					39 00 00 00 00 00 05 51 00 00 0F FE
+				];
+				oplus,dsi-ultra-low-power-aod-on-command = [
+
+				];
+				oplus,dsi-ultra-low-power-aod-off-command = [
+				];
+				oplus,dsi-aod-high-mode-command = [
+					39 00 00 40 00 00 04 FF 08 38 00
+					39 00 00 00 00 00 05 51 00 00 0F FE
+				];
+				oplus,dsi-aod-low-mode-command = [
+					39 00 00 40 00 00 04 FF 08 38 00
+					39 00 00 00 00 00 05 51 00 00 0D BB
+				];
+				oplus,dsi-lhbm-pressed-icon-gamma-command = [
+				];
+				oplus,dsi-lhbm-pressed-icon-grayscale-command = [
+				];
+				oplus,dsi-lhbm-pressed-icon-off-command = [
+					39 00 00 40 00 00 04 FF 08 38 00
+					15 00 00 00 00 00 02 95 10
+				];
+				oplus,dsi-switch-hbm-apl-on-command = [
+				];
+				oplus,dsi-switch-hbm-apl-off-command = [
+				];
+				oplus,dsi-hbm-on-command = [
+					39 00 00 40 00 00 04 FF 08 38 00
+					39 00 00 00 00 00 03 51 0F FF
+				];
+				oplus,dsi-hbm-off-command = [
+					39 00 00 40 00 00 04 FF 08 38 00
+					39 00 00 00 00 00 03 51 0E FC
+				];
+				oplus,dsi-panel-gamma-compensation-page2-command = [
+				];
+				oplus,dsi-panel-gamma-compensation-command = [
+				];
+				oplus,dsi-set-seed-natural-command = [
+					39 00 00 40 00 00 04 FF 08 38 63
+					39 00 00 40 00 00 11 95 FC FC EA D8 C6 B5 A3 91 7F 6D 5C 4A 38 26 14 01
+ 					39 00 00 40 00 00 15 96 FF 88 8B 8E 91 FF 94 97 9A 9D FF A0 A3 A6 A9 FF AC AF B2 B5
+					39 00 00 40 00 00 11 97 FF ED DB C9 B7 A5 93 81 6F 5D 4B 39 27 15 01 00
+					15 00 00 40 00 00 02 90 01
+					39 00 00 00 00 00 04 FF 08 38 00
+				];
+				oplus,dsi-set-seed-vivid-command = [
+					39 00 00 40 00 00 04 FF 08 38 63
+					39 00 00 40 00 00 11 95 FC FC EA D8 C6 B5 A3 91 7F 6D 5C 4A 38 26 14 01
+					39 00 00 40 00 00 15 96 FF 88 8F 97 9E FF A6 AE B5 BD FF C4 CC D4 DB FF E3 EA F2 FA
+					39 00 00 40 00 00 11 97 FF ED DB C9 B7 A5 93 81 6F 5D 4B 39 27 15 01 00
+					15 00 00 40 00 00 02 90 01
+					39 00 00 00 00 00 04 FF 08 38 00
+				];
+				oplus,dsi-set-seed-expert-command = [
+					39 00 00 40 00 00 04 FF 08 38 63
+					15 00 00 40 00 00 02 90 00
+					39 00 00 00 00 00 04 FF 08 38 00
+				];
+				oplus,dsi-set-uir-on-seed-vivid-command = [
+				];
+				oplus,dsi-set-uir-on-seed-expert-command = [
+				];
+				oplus,dsi-set-uir-on-seed-natural-command = [
+				];
+				oplus,dsi-set-uir-off-seed-vivid-command = [
+				];
+				oplus,dsi-set-uir-off-seed-expert-command = [
+				];
+				oplus,dsi-set-uir-off-seed-natural-command = [
+				];
+				oplus,dsi-on-post-command-state = "dsi_lp_mode";
+				oplus,dsi-off-command-state = "dsi_lp_mode";
+				oplus,dsi-set-backlight-command-state = "dsi_hs_mode";
+				oplus,dsi-aod-on-command-state = "dsi_ls_mode";
+				oplus,dsi-panel-demura-dbv-mode0-command-state = "dsi_hs_mode";
+				oplus,dsi-panel-demura-dbv-mode1-command-state = "dsi_hs_mode";
+				oplus,dsi-ultra-low-power-aod-off-command-state = "dsi_ls_mode";
+				oplus,dsi-ultra-low-power-aod-on-command-state = "dsi_ls_mode";
+				oplus,dsi-aod-high-mode-command-state = "dsi_ls_mode";
+				oplus,dsi-aod-low-mode-command-state = "dsi_ls_mode";
+				oplus,dsi-lhbm-pressed-icon-off-command-state = "dsi_hs_mode";
+				oplus,dsi-lhbm-pressed-icon-gamma-command-state = "dsi_hs_mode";
+				oplus,dsi-lhbm-pressed-icon-grayscale-command-state = "dsi_hs_mode";
+				oplus,dsi-switch-hbm-apl-on-command-state = "dsi_hs_mode";
+				oplus,dsi-switch-hbm-apl-off-command-state = "dsi_hs_mode";
+				oplus,dsi-hbm-on-command-state = "dsi_hs_mode";
+				oplus,dsi-hbm-off-command-state = "dsi_hs_mode";
+				oplus,dsi-set-seed-natural-command-state = "dsi_hs_mode";
+				oplus,dsi-set-seed-vivid-command-state = "dsi_hs_mode";
+				oplus,dsi-set-seed-expert-command-state = "dsi_hs_mode";
+				oplus,dsi-panel-gamma-compensation-page2-command-state = "dsi_hs_mode";
+				oplus,dsi-panel-gamma-compensation-command-state = "dsi_hs_mode";
+				oplus,dsi-set-uir-on-seed-vivid-command-state = "dsi_hs_mode";
+				oplus,dsi-set-uir-on-seed-expert-command-state = "dsi_hs_mode";
+				oplus,dsi-set-uir-on-seed-natural-command-state = "dsi_hs_mode";
+				oplus,dsi-set-uir-off-seed-vivid-command-state = "dsi_hs_mode";
+				oplus,dsi-set-uir-off-seed-expert-command-state = "dsi_hs_mode";
+				oplus,dsi-set-uir-off-seed-natural-command-state = "dsi_hs_mode";

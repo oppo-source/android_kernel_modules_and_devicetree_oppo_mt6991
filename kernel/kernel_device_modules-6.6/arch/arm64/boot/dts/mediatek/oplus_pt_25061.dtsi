@@ -1,0 +1,157 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * Copyright (c) 2025 MediaTek Inc.
+ */
+#include <dt-bindings/iio/mt635x-auxadc.h>
+#include <dt-bindings/pinctrl/mt6991-pinfunc.h>
+
+&low_battery_throttling {
+		compatible = "mediatek,low_battery_throttling";
+		lvsys-thd-enable = <1>;
+		vbat-thd-enable = <1>;
+		bat0-thd-volts-l = <
+			2800 2650 2450 2250    //PT threshhold down
+			2850 2700 2500 2300
+			2950 2800 2600 2400
+			3050 2900 2700 2500
+			3150 3000 2800 2600>;
+		bat0-thd-volts-h = <
+			2900 2800 2650 2450
+			2950 2850 2700 2500
+			3050 2950 2800 2600
+			3150 3050 2900 2700
+			3250 3150 3000 2800>;
+		bat1-thd-volts-l = <
+			2800 2650 2450 2250    //PT threshhold down
+			2850 2700 2500 2300
+			2950 2800 2600 2400
+			3050 2900 2700 2500
+			3150 3000 2800 2600>;
+		bat1-thd-volts-h = <
+			2900 2800 2650 2450
+			2950 2850 2700 2500
+			3050 2950 2800 2600
+			3150 3050 2900 2700
+			3250 3150 3000 2800>;
+		lvsys-thd-volt-l = <2700>;   //0.1V down
+		lvsys-thd-volt-h = <2900>;   //0.1V down
+
+		temperature-stage-threshold = <25 10 0 (-10)>;
+		bat0-aging-threshold = <500 800 1000>;
+		bat0-aging-volts-t0 =  <50 100 150>;
+		bat0-aging-volts-t1 =  <50 100 150>;
+		bat0-aging-volts-t2 =  <50 100 150>;
+		bat0-aging-volts-t3 =  <50 100 150>;
+		bat0-aging-volts-t4 =  <50 100 150>;
+		bat1-aging-threshold = <500 800 1000>;
+		bat1-aging-volts-t0 =  <0 0>;
+		bat1-aging-volts-t1 =  <0 0>;
+		bat1-aging-volts-t2 =  <0 0>;
+		bat1-aging-volts-t3 =  <0 0>;
+		bat1-aging-volts-t4 =  <0 0>;
+		pt-shutdown-enable = <0>;
+		throttle-level =  <0 1 2 3 4>,
+				  <0 1 2 3 4>,
+				  <0 1 2 3 4>,
+				  <0 1 3 5 4>,
+				  <0 1 3 5 4>;
+		bootmode = <&chosen>;
+		gauge = <&mtk_gauge>;
+};
+
+&cpu_power_throttling {
+	bootmode = <&chosen>;
+
+	lbat-max-level = <5>;
+	lbat-limit-freq-lv1 = < 2400000  2800000 2800000>;
+	lbat-limit-freq-lv2 = < 2100000  2200000 2400000>;
+	lbat-limit-freq-lv3 = < 1800000  1800000 1800000>;
+	lbat-limit-freq-lv4 = < 1200000  1200000 1200000>;
+	lbat-limit-freq-lv5 = < 1500000  1500000 1500000>;
+
+	oc-max-level = <2>;
+	oc-limit-freq-lv1 = < 2147483647  2147483647 2147483647>;
+	oc-limit-freq-lv2 = < 2100000  2200000 2400000>;
+
+	soc-max-level = <3>;
+	soc-core-active-lv1 = < 1 1 1 1 1 1 1 1 >;
+	soc-core-active-lv2 = < 1 1 1 1 1 1 1 1 >;
+	soc-core-active-lv3 = < 1 1 1 1 1 1 1 1 >;
+
+	soc-limit-freq-lv1 = < 2147483647  2147483647 2147483647 >;
+
+	soc-limit-freq-lv2 = < 2400000 2800000 3000000>;
+	soc-limit-freq-lv3 = < 2100000 2100000 2100000>;
+
+	bootup-throttle-level = 
+		<0 1 2>,
+		<0 2 2>, //boot temperature stage 0
+		<1 2 2>, //boot temperature stage 1
+		<2 2 2>; //boot temperature stage 2
+	bootup-temperature-stage-threshold = <10 0 (-10)>;
+	bootup-voltage-threshold = <3700 3450>;
+	bootup-delay-release-time = <10>;
+	limit-freq-bootmode0-lv1 = <2200000 2800000 3000000>;
+	limit-freq-bootmode0-lv2 = <1800000 1800000 1800000>;
+};
+
+&gpu_power_throttling {
+	lbat-max-level = <5>;
+	lbat-limit-freq-lv1 = <1118000>;
+	lbat-limit-freq-lv2 = <1014000>;
+	lbat-limit-freq-lv3 = <910000>;
+	lbat-limit-freq-lv4 = <702000>;
+	lbat-limit-freq-lv5 = <806000>;
+
+	oc-max-level = <2>;
+	oc-limit-freq-lv1 = <988000>;
+	oc-limit-freq-lv2 = <520000>;
+
+	soc-max-level = <3>;
+	soc-limit-freq-lv1 = <2147483647>;
+	soc-limit-freq-lv2 = <1196000>;
+	soc-limit-freq-lv3 = <988000>;
+};
+
+&bp_thl {
+	max-throttle-level = <3>;   //+lv3
+	soc-throttle-level =
+		<0 1 1 1 2 3>, //temperature stage 0
+		<0 1 1 1 2 3>, //temperature stage 1
+		<0 1 1 2 3 3>, //temperature stage 2
+		<0 1 2 3 3 3>,//temperature stage 3
+                    <0 3 3 3 3 3>;//temperature stage 4
+	soc-max-stage = <5>;
+	soc-limit-threshold = <25 15 10 5 2>;
+
+	temperature-max-stage = <4>;
+	temperature-stage-threshold = <25 10 0 (-10)>;
+
+	md-soc-throttle-l = <20>;
+	md-soc-throttle-h = <25>;
+};
+
+&md_power_throttling {
+	compatible = "mediatek,md-power-throttling";
+
+	lbat-dedicate-volts = <3150 3000 2850 2700 2550>;
+	lbat-dedicate-temperature = <25 10 0 (-10)>;
+	lbat-dedicate-throttle-level =  < 0 0 1 1 4>,
+					< 0 1 2 3 4>,
+					< 0 2 3 3 4>,
+					< 0 3 3 4 4>,
+					< 0 3 3 4 4>;
+
+	lbat-max-level = <5>;
+	lbat-reduce-tx-lv1 = <0>;
+	lbat-reduce-tx-lv2 = <6>;
+	lbat-reduce-tx-lv3 = <6>;
+	lbat-reduce-tx-lv4 = <6>;
+	lbat-reduce-tx-lv5 = <6>;
+
+	oc-max-level = <2>;
+	oc-reduce-tx-lv1 = <0>;
+	oc-reduce-tx-lv2 = <6>;
+
+	soc-max-level = <0>;
+};

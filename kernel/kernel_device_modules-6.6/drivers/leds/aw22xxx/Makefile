@@ -1,0 +1,1 @@
+obj-$(CONFIG_LEDS_AW22XXX)      += leds-aw22xxx.o

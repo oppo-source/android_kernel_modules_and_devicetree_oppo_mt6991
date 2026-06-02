@@ -1,0 +1,31 @@
+// SPDX-License-Identifier: (GPL-2.0 OR MIT)
+/*
+ * Copyright (C) 2020 MediaTek Inc.
+ */
+&connfem {
+        /* Support Wifi & BT ePA/eLNA FEM on customer load */
+        epa-elna {
+                parts = <&vc536411 &vc576811>;
+                common {
+                        flags-0 {
+                                rx-mode = [30];
+                                fe-ant-cnt = [81];
+                                fe-main-bt-share-lp2g = [80];
+                                fe-conn-spdt = [80];
+                                fe-reserved = [80];
+                        };
+                };
+                wifi {
+                        flags-0 {
+                                /* open-loop; */
+                        };
+                };
+                bt {
+                        flags-0 {
+                                /* choose one of: epa-elna/epa/elna/bypass */
+                                epa-elna;
+                        };
+                };
+        };
+};
+
